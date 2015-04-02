@@ -1,2 +1,5 @@
 FROM node:0.10-onbuild
-EXPOSE 8888
+# Set timezone to riot's
+ENV TZ America/Los_Angeles
+# Set defualt command
+CMD ["node", "main.js"]
