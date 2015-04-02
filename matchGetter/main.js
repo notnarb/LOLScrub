@@ -8,10 +8,6 @@ Promise.promisifyAll(request);
 Promise.promisifyAll(mongodb.MongoClient);
 Promise.promisifyAll(mongodb.Collection.prototype);
 
-var secrets = require('./secrets.json');
-
-var db;
-
 var FORMAT_STRING = "YYYY-MM-DD HH:mm:ss";
 
 // 0 indexed month.  start date = the first of april (4).
@@ -30,7 +26,7 @@ function getNextDate () {
 }
 
 /**
- * Get the currentDate from the database then call startLoop
+ * Get the currentDate from the database then calls loopOrWait
  * @param db - mongo database object
  */
 function initLoop (db) {
@@ -55,71 +51,68 @@ function initLoop (db) {
 			console.log('Starting with current date', currentDate.format(FORMAT_STRING));
 		})
 		.then(function () {
-			startLoop(db);
 			console.log('loop started');
+			loopOrWait(db);
 		});
 		;
 	});
 }
 
 /**
- * Start the main loop
- * @param db - mongo database object
+ * Check if there should be new data, query if the new data exists, then call
+ * loopOrWait again either via process.setTimeout() or process.nextTick depending on what the believed wait time for new data is
  */
-function startLoop (db) {
+function loopOrWait (db) {
 	if (!currentDate) {
 		throw "Startloop called when currentDate isn't set";
 	}
-	var currentPromise = Promise.resolve();
-	setInterval (function ()  {
-		var now = moment();
-		// don't perform an operation if another is in progress TODO: I could do this better
-		if (currentPromise.isPending()) {
-			// if there is a current match lookup in progress, skip
-			console.log('Lookup in progress, skipping');
-			return;
-		}
-		// console.log('comparing date times', now.format(FORMAT_STRING), currentDate.format(FORMAT_STRING));
-		// If it has been less than 10 minutes since the current date we are
-		// searching for, skip
-		if (now.diff(currentDate, 'minutes') < 10) {
-			// console.log('has not been 5 minutes, skipping', now.diff(currentDate, 'minutes'));
-			process.stdout.write('.');
-			return;
-		};
+	var now = moment();
+	// If the current time isn't more than 10 minutes past the last checked
+	// date, call this function again around when that should be
+	var expectedTime = currentDate.clone().add(10, 'minutes');
+	// if expected time - now > 0, wait however long that is
+	var timeUntilNextCheck = expectedTime.diff(now);
+	if (timeUntilNextCheck > 0) {
+		console.log('waiting', timeUntilNextCheck);
+		setTimeout(loopOrWait.bind(null, db), timeUntilNextCheck);
+		return;
+	}
 
-		var timestamp = currentDate.unix();
-		currentPromise = matchListIsValid(db.collection('matchList'), timestamp).then(function (result) {
-			// if a valid result exists, don't hit the api
-			if (result) {
-				process.stdout.write('~');
+	var timestamp = currentDate.unix();
+	matchListIsValid(db.collection('matchList'), timestamp).then(function (result) {
+		// if a valid result already exists, don't hit the api and increment the date
+		if (result) {
+			process.stdout.write('~');
+			getNextDate();
+			return Promise.resolve();
+		}
+		return getMatchList(timestamp).then(function (results) {
+			console.log('storing match list', timestamp);
+			return storeMatchList(db.collection('matchList'), results, timestamp).then(function () {
+				console.log('stored match list', timestamp);
 				getNextDate();
-				return Promise.resolve();
-			}
-			return getMatchList(timestamp).then(function (results) {
-				console.log('storing match list');
-				return storeMatchList(db.collection('matchList'), results, timestamp).then(function () {
-					console.log('stored match list');
-					getNextDate();
-					return;
-				});
+				return;
 			});
-		}).catch(RiotApiError, function (error) {
-			if (error.code === 404) {
-				console.log('404 for date, skipping');
-				getNextDate();
-				return Promise.resolve();
-			};
-			if (error.code === 429) {
-				// wait for 1 minute if api replies with rate limit exceeded
-				// TODO: alter error handlers to parse for wait header
-				return Promise.delay(60000);
-			}
-			return Promise.reject(error);
 		});
-		// run every 1.2 seconds since that is how many requests you can do per
-		// second over the course of 10 minutes
-	}, 1200);
+	}).catch(RiotApiError, function (error) {
+		if (error.code === 404) {
+			console.log('404 for date, skipping');
+			getNextDate();
+			return Promise.resolve();
+		};
+		if (error.code === 429) {
+			// wait for 1 minute if api replies with rate limit exceeded
+			// TODO: alter error handlers to parse for wait header
+			console.log("Hit api limit, waiting for one minute");
+			return Promise.delay(60000);
+		}
+		return Promise.reject(error);
+	}).finally(function () {
+		// trigger loopOrWait again, but add it to the event loop rather than
+		// straight recursively calling it to prevent memory leaks
+		process.nextTick(loopOrWait.bind(this, db));
+	});
+	
 }
 
 
@@ -165,9 +158,8 @@ function riotErrorHandler (statusCode) {
  */
 function getMatchList (time) {
 	var requestUrl = [
-		'https://na.api.pvp.net/api/lol/na/v4.1/game/ids',
-		'?beginDate=' + time,
-		'&api_key=' + secrets['api-key']
+		'http://riotambassador:8000/api/lol/na/v4.1/game/ids',
+		'?beginDate=' + time
 	].join("");
 	return request.getAsync(requestUrl, {json: true}).then(function (args) {
 		var response = args[0];
@@ -181,8 +173,6 @@ function getMatchList (time) {
 
 /**
  * Makes a request to the riot api and retrieve information for a single match.
- * Expects 'secrets["api-key"]' to be available. Note: the region of 'na' is
- * hardcoded into this function
  * @param {String} matchId - the unique ID of the match to look up
  * @returns {Promise} - resolves with the parsed object response
  * @throws rejects promise if given a status code in the response
@@ -192,10 +182,9 @@ function getMatch (matchId) {
 		return null;
 	}
 	var requestUrl = [
-		'https://na.api.pvp.net/api/lol/na/v2.2/match/',
+		'http://riotambassador:8000/api/lol/na/v2.2/match/',
 		matchId,
-		'?includeTimeline=true',
-		'&api_key=' + secrets['api-key']
+		'?includeTimeline=true'
 	].join("");
 	return request.getAsync(requestUrl, {json: true}).then(function (args) {
 		var response = args[0];
@@ -269,22 +258,11 @@ function storeMatchList (collection, resultBody, time) {
 		});
 
 }
-// getMatch(1778704162).then(function (responseBody) {
-// 	console.log(responseBody);
-// });
 
 var client = mongodb.MongoClient.connectAsync('mongodb://mongo:27017/urfday')
 		.then(function (foundDb) {
-			db = foundDb;
+			var db = foundDb;
 			return initLoop(db);
 		}).catch(function (error) {
 			console.log('Found error', error, 'exiting');
 		});
-		// 	return getMatch(1778704162);
-		// })
-		// .then(function (results) {
-		// 	return storeMatch(db.collection('matches'), results);
-		// })
-		// .then(function () {
-		// 	console.log('done!');
-		// });
