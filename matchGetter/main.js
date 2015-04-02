@@ -171,50 +171,6 @@ function getMatchList (time) {
 	});
 }
 
-/**
- * Makes a request to the riot api and retrieve information for a single match.
- * @param {String} matchId - the unique ID of the match to look up
- * @returns {Promise} - resolves with the parsed object response
- * @throws rejects promise if given a status code in the response
- */
-function getMatch (matchId) {
-	if (!matchId) {
-		return null;
-	}
-	var requestUrl = [
-		'http://riotambassador:8000/api/lol/na/v2.2/match/',
-		matchId,
-		'?includeTimeline=true'
-	].join("");
-	return request.getAsync(requestUrl, {json: true}).then(function (args) {
-		var response = args[0];
-		var body = args[1];
-		if (body.status && body.status.status_code) {
-			riotErrorHandler(body.status.status_code);
-		}
-		return body;
-	});
-}
-
-/**
- * Given results from getMatch(), store them into mongo
- * @param {mongodb.Collection} collection - collection to insert the results into
- * @param {Object} resultBody - result of the getMatch request
- * @returns {Promise} - resolves once stored into the database
- */
-function storeMatch (collection, resultBody) {
-	// TODO: look up the performance impact of doing a search before each insert
-	return collection.findOneAsync({matchId : resultBody.matchId})
-		.then(function (result) {
-			if (result) {
-				console.log('Match ' + resultBody.matchId + ' already exists, skipping');
-				return Promise.resolve();
-			} else {
-				return collection.insertAsync(resultBody);
-			}
-		});
-
-}
 
 /**
  * Checks the database for a match list with the specified time exists. Resolves
