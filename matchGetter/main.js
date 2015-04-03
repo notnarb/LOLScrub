@@ -204,7 +204,12 @@ function storeMatchList (collection, resultBody, time) {
 		.then(function (result) {
 			if (result) {
 				console.log('results already exist for time', time);
-				// TODO: see if the info is different
+				// if there is more results in this search result, replace the record
+				if (resultBody.length > result.resultList.length) {
+					console.log('More results found, updating record');
+					return collection.updateAsync({_id: result._id}, {resultList: resultBody});
+				}
+				console.log('No results found, skipping');
 				return Promise.resolve();
 			}
 			return collection.insertAsync({

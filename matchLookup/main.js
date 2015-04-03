@@ -24,8 +24,13 @@ var db;
 var client = mongodb.MongoClient.connectAsync('mongodb://mongo:27017/urfday')
 		.then(function (foundDb) {
 			db = foundDb;
+			// fill list of already obtained match ids
+			return initializeIdMap(db.collection('matches'));
+		}).then(function () {
+			// populate idsToCheck
 			return updateMatchListMap(db.collection('matchList'));
 		}).then(function () {
+			// iterate over idsToCheck
 			lookupLoop(db);
 		}).catch(function (error) {
 			console.log('Found error', error, 'exiting');
@@ -66,16 +71,41 @@ function riotErrorHandler (statusCode) {
 }
 
 /**
+ * Given a mongodb collection, generate a list of obtained match Ids and store
+ * them in the idMap so the api knows to not obtian them again.  This should be
+ * used to pre-polulate the idmap on first run
+ * @param {mongodb.Collection) collection - collection storing matches
+ * @returns {Promise} - resolves when list has been filled
+ */
+function initializeIdMap (collection) {
+	return new Promise (function (resolve, reject) {
+		// get a list of matchIds in the currenct collection
+		collection.find({}, {matchId: 1}).toArray(function (err, docs) {
+			if (err) {
+				reject(err);
+			} else {
+				resolve(docs);
+			}
+		});
+	}).then(function (results) {
+		results.forEach(function (result) {
+			idMap[result.matchId] = true;
+		});
+	});
+}
+
+/**
  * Add a match ID to the list of match IDs to check.  Don't add the match ID if it already exists
  * @param {Interger} matchId - match ID to queue
  */
 function queueMatchId (matchId) {
 	if (idMap[matchId]) {
-		console.log('Duplicate match','already has been checked');
+		console.log('Duplicate match', matchId, 'already has been checked');
 		return;
 	}
 	if (idsToCheck[matchId]) {
-		console.log('Duplicate match', 'already has been queued to be checked');
+		console.log('Duplicate match', matchId, 'already has been queued to be checked');
+		return;
 	}
 	idsToCheck[matchId] = true;
 }
@@ -142,7 +172,13 @@ function lookupLoop (db) {
 	var keyList = Object.keys(idsToCheck);
 	if (!keyList.length) {
 		// if there aren't any keys, exit
-		console.log('key list exhausted');
+		console.log('key list exhausted, pausing for 1 minute');
+		setTimeout(function () {
+			console.log('starting again');
+			updateMatchListMap(db.collection('matchList')).then(function () {
+				process.nextTick(lookupLoop.bind(null, db));
+			});	
+		}, 60 * 1000);
 		return;
 	}
 	var matchId = keyList.pop();
@@ -153,6 +189,14 @@ function lookupLoop (db) {
 	}).then(function () {
 		idMap[matchId] = true;
 		delete idsToCheck[matchId];
+	}).catch(RiotApiError, function (error) {
+		// catch rate limit errors and handle them gracefully
+		if (error.code === 429) {
+			// wait 10 seconds if limit passed
+			console.log('exceeded limit, waiting 10 seconds');
+			return Promise.delay(10000);
+		}
+		throw (error);
 	}).finally(function () {
 		process.nextTick(lookupLoop.bind(null, db));
 	});

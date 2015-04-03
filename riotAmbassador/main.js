@@ -48,18 +48,32 @@ function Key (keyString, req10, req600) {
 	
 	// Set interval to increase the number of requests allowd per 10
 	setInterval(function () {
-		if (this.req10 <= this.req10Max) {
+		if (this.req10 < this.req10Max) {
 			this.req10 += 1;
 		}
 	}.bind(this), this.req10Interval);
 
 	// Set interval to increase the nuimber of requests allowed per 600 seconds
 	setInterval(function () {
-		if (this.req600 <= this.req600Max) {
+		if (this.req600 < this.req600Max) {
 			this.req600 +=1;
 		}
-	}, this.req600Interval);
+	}.bind(this), this.req600Interval);
 }
+
+/**
+ * Return object containing stats about this key.  Omits private key
+ * @returns {Object}
+ */
+Key.prototype.getStats = function () {
+	return {
+		req10: this.req10,
+		req600: this.req600,
+		req10Interval: this.req10Interval,
+		req600Interval: this.req600Interval
+	};
+};
+
 
 /**
  * Calculate the delay for the next request (and adjust future responses to
@@ -69,8 +83,8 @@ function Key (keyString, req10, req600) {
  * @return {Integer} delay - the amount of time in milliseconds to delay this api key access
  */
 Key.prototype.access = function () {
-	this.req10--;
-	this.req600--;
+	this.req10 -=1;
+	this.req600 -=1;
 	// calculate what ratio of the max each limit is at
 	var req10Ratio = this.req10 / this.req10Max;
 	var req600Ratio = this.req600 / this.req600Max;
@@ -82,7 +96,12 @@ Key.prototype.access = function () {
 		ratio = req600Ratio;
 		interval = this.req600Interval;
 	}
-	
+
+	// current implmentation:
+	// If > 80% of requests are left, allow requests as if an average of 0.5 services are connected
+	// if > 50% of requests are left, allow requests as if an average of 1 service is connected
+	// If > 20% of requests are left, allow requests as if an average of 3 services are connected
+	// If < 20% of requests are left, allow requests as if an average of 10 services are connected
 
 	if (ratio > 0.8) {
 		// Over 80% of limit, set wait time to 50% of the inteval refresh time
@@ -147,3 +166,18 @@ var server = http.createServer(function (req, res) {
 
 console.log('listening');
 server.listen(8000);
+
+
+/**
+ * Open server to provide simple stats on keys
+ */ 
+var diagnosticServer = http.createServer(function (req, res) {
+	var response = JSON.stringify(keyList.map(function (key) {
+		return key.getStats();
+	}));
+	res.writeHead(200, {'Content-Type': 'application/json'});
+	res.end(response);
+});
+
+console.log('listening on diagnostic server');
+diagnosticServer.listen(8001);
