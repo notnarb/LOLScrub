@@ -2,6 +2,8 @@ var util = require('util');
 var Promise = require('bluebird');
 var request = require('request');
 var mongodb = require('mongodb');
+var http = require('http');
+
 
 Promise.promisifyAll(request);
 Promise.promisifyAll(mongodb.MongoClient);
@@ -193,8 +195,8 @@ function lookupLoop (db) {
 		// catch rate limit errors and handle them gracefully
 		if (error.code === 429) {
 			// wait 10 seconds if limit passed
-			console.log('exceeded limit, waiting 10 seconds');
-			return Promise.delay(10000);
+			console.log('exceeded limit, waiting 5 seconds');
+			return Promise.delay(5000);
 		}
 		throw (error);
 	}).finally(function () {
@@ -247,4 +249,8 @@ function storeMatch (collection, resultBody) {
 
 }
 
-
+http.createServer(function (req, res) {
+	var response = String(Object.keys(idsToCheck).length);
+	res.writeHead(200, {'Content-Type': 'application/json'});
+	res.end(response);
+}).listen(8001);

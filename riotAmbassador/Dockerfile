@@ -1,6 +1,7 @@
 FROM node:0.10-onbuild
-# port requests are listened on
+# Low priority port
 EXPOSE 8000
+# high priority port
 # diagnostic port
 EXPOSE 8001
 # Set defualt command

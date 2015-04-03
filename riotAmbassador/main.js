@@ -14,6 +14,15 @@ var REQ600MAX = 500;
 var REQ10MAX = 10;
 var keyList = [];
 
+// Number of times the low priority queue is allowed to be concurrently skipped in favor of the high priority queue
+var SKIP_LOW_THRESHOLD = 5;
+
+// Differnt ports to listen in on.  Note: outside the context of containers,
+// it's pretty silly to hardcode these values
+var LOW_PRIORITY_PORT = 8000;
+var HIGH_PRIORITY_PORT = 9000;
+var DIAGNOSTIC_PORT = 8001;
+
 /**
  * @classdesc container for a riot api key plus the logic to determine how many
  * times it can be called
@@ -23,43 +32,86 @@ var keyList = [];
  */
 function Key (keyString, req10, req600) {
 	if (!keyString || !req10 || !req600) {
-		throw new Error("Missing requrired Key parameters");
+		throw new Error("Missing required Key parameters");
 	}
 	this.apikey = keyString;
 
-	
-	// number of requests allowed per 10 seconds
-	this.req10 = req10;
+	// the average number of ms allowed for each request type
+	var req10Interval = 10 / req10 * 1000;  /*s->ms*/
+	var req600Interval = 600 / req600 * 1000; /*s->ms*/
 
-	// number of requests allowed per 10 minutes
-	this.req600 = req600;
+	// Set the interval for this key to be whatever the slower average is
+	this.interval = Math.max(req10Interval, req600Interval);
 
-	// the maximum number of requests allowed per 10 seconds/minutes
-	this.req10Max = req10;
-	this.req600Max = req600;
+	// add 20ms as a fudge value to the interval.  There currently isn't a
+	// response listener so add 20ms to the calculated interval time. (don't
+	// know if this wll increase the reliability of not hitting the limit or
+	// not, operating on pure assumption)
+	this.interval += 20;
 	
-	
-	// the average number of seconds between each call
-	this.req10Interval = 10 / req10 * 1000;  /*s->ms*/
-	this.req600Interval = 600 / req600 * 1000; /*s->ms*/
+	this.lowPriorityQueue = [];
+	this.highPriorityQueue = [];
 
-	this.req10Velocity = 0;
-	this.req600Velocity = 0;
-	
-	// Set interval to increase the number of requests allowd per 10
-	setInterval(function () {
-		if (this.req10 < this.req10Max) {
-			this.req10 += 1;
-		}
-	}.bind(this), this.req10Interval);
+	// Number of concurrent times the low priority queue has been skipped in favor of the high priority queue
+	this.numLowSkipped = 0;
 
-	// Set interval to increase the nuimber of requests allowed per 600 seconds
-	setInterval(function () {
-		if (this.req600 < this.req600Max) {
-			this.req600 +=1;
-		}
-	}.bind(this), this.req600Interval);
+	// assume that a request has been made as recently as now
+	this.lastRequestTime = Date.now();
+
+	// Start looping through the queue
+	this.waitForNextTick();
 }
+
+/**
+ * Calculate how long until the next request in milliseconds.  TODO: this could
+ * interact with too many api requests events (e.g. if a too many request reply
+ * came from the api, return that value instead)
+ * @returns {Integer} time im MS until next request.  Can be negative (next request is overdue)
+ */
+Key.prototype.getNextRequestInterval = function () {
+	return this.interval - (Date.now() - this.lastRequestTime);
+};
+
+/**
+ * Calls consumeNextQueueItem after getNextRequestInterval() ms.  Calls
+ * waitForNextTick recursively via timeout once the request has been sent
+ */
+Key.prototype.waitForNextTick = function () {
+	var nextInterval = this.getNextRequestInterval();
+	// wait a minimum of 1 ms
+	if (nextInterval < 1) {
+		nextInterval = 1;
+	}
+	setTimeout(function () {
+		this.consumeNextQueueItem();
+		this.lastRequestTime = Date.now();
+		this.waitForNextTick();
+	}.bind(this), nextInterval);
+};
+
+/**
+ * Execute the next item in the queue FIFO.  Prioritize high priority queue
+ * items over low priority queue itmes, but if it has been SKIP_LOW_THRESHOLD
+ * times since the lowPriorityQueue has been accessed, instead run an item from
+ * it.
+ */
+Key.prototype.consumeNextQueueItem = function () {
+	if (!this.highPriorityQueue.length && !this.lowPriorityQueue.length) {
+		console.log('Queue empty, wasted tick', Date.now());
+		return;
+	}
+	var action;
+	if (this.highPriorityQueue.length && this.numLowSkipped < SKIP_LOW_THRESHOLD) {
+		action = this.highPriorityQueue.shift();
+		if (this.lowPriorityQueue.length) {
+			this.numLowSkipped += 1;
+		}
+	} else {
+		this.numLowSkipped = 0;
+		action = this.lowPriorityQueue.shift();
+	}
+	action();
+};
 
 /**
  * Return object containing stats about this key.  Omits private key
@@ -67,65 +119,32 @@ function Key (keyString, req10, req600) {
  */
 Key.prototype.getStats = function () {
 	return {
-		req10: this.req10,
-		req600: this.req600,
-		req10Interval: this.req10Interval,
-		req600Interval: this.req600Interval
+		interval: this.interval,
+		highPriorityQueue: this.highPriorityQueue.length,
+		lowPriorityQueue: this.lowPriorityQueue.length
 	};
 };
 
-
 /**
- * Calculate the delay for the next request (and adjust future responses to
- * account for another access) TODO: in retrospect it would make more sense for
- * a key to emit some sort of async event rather than try to predict how many
- * seconds to take for the next request
- * @return {Integer} delay - the amount of time in milliseconds to delay this api key access
+ * Enqueue an action related to this key
+ * @param {Function} action - action to perform.  Action is called with api key (String) as first parameter
+ * @param {Boolean} [isHighPriority=false] - if true, queue this action as a higher priority than other actions
  */
-Key.prototype.access = function () {
-	this.req10 -=1;
-	this.req600 -=1;
-	// calculate what ratio of the max each limit is at
-	var req10Ratio = this.req10 / this.req10Max;
-	var req600Ratio = this.req600 / this.req600Max;
-	var ratio, interval;
-	if (req10Ratio < req600Ratio) {
-		ratio = req10Ratio;
-		interval = this.req10Interval;
-	} else {
-		ratio = req600Ratio;
-		interval = this.req600Interval;
+Key.prototype.queue = function (action, isHighPriority) {
+	if (!action || !((typeof action) === 'function')) {
+		throw "can't queue action if action is not a function";
 	}
-
-	// current implmentation:
-	// If > 80% of requests are left, allow requests as if an average of 0.5 services are connected
-	// if > 50% of requests are left, allow requests as if an average of 1 service is connected
-	// If > 20% of requests are left, allow requests as if an average of 3 services are connected
-	// If < 20% of requests are left, allow requests as if an average of 10 services are connected
-
-	if (ratio > 0.8) {
-		// Over 80% of limit, set wait time to 50% of the inteval refresh time
-		return interval / 2;
-	} else if (ratio > 0.5) {
-		// > 50%, wait time = interval time
-		return interval;
-	} else if (ratio > 0.2) {
-		// > 20%, wait time = 3x interval time
-		return interval * 3;
+	var callbackToExecute = action.bind(null, this.apikey);
+	if (isHighPriority) {
+		this.highPriorityQueue.push(callbackToExecute);
 	} else {
-		// < 20%, wait time = 10x interval time
-		return interval * 10;
+		this.lowPriorityQueue.push(callbackToExecute);
 	}
-
-	// TODO: when it's not 1 in the morning, come up with a better algorithm/implementaion for exponential backoff
-	// This should be good enough for now.  So long as each service only has one active request out at a time, it should allow for 10 concurrent services
 };
 
 secretKeyList.forEach(function (apikey) {
 	keyList.push(new Key(apikey, REQ10MAX, REQ600MAX));
 });
-
-
 
 
 // index of the last key accessed
@@ -142,30 +161,55 @@ function getKey () {
 	return keyList[lastKeyUsed];
 }
 
-var server = http.createServer(function (req, res) {
-	// pick a key
-	var key = getKey();
-	// Calculate the delay for accessing the key right now
-	var delay = key.access();
-
+/**
+ * Given an api key, send a request to the riot API
+ * @param {String} apiKey - apiKey as provided to the callback argument to Key#queue()
+ * @param {HTTP.req} - http request object
+ * @param {HTTP.res} - http response object
+ */
+function sendRequest (apiKey, req, res) {
 	// add the apikey to the end of the url
 	// if there is already a question mark in the url, assume that a query string has been started and use an & instead of a ?
 	if (/\?/.test(req.url)) {
-		req.url += '&api_key=' + key.apikey;
+		req.url += '&api_key=' + apiKey;
 	} else {
-		req.url += '?api_key=' + key.apikey;
+		req.url += '?api_key=' + apiKey;
 	}
+	proxy.web(req, res, {target: 'https://na.api.pvp.net'});
+}
 
-	console.log('request!  Delay:',delay, "New url:", req.url);
+function genericServerErrorHandler (error) {
+	console.log('Server recieved error', error);
+};
 
-	// Make the request afte rthe specified delay
-	setTimeout(function () {
-		proxy.web(req, res, {target: 'https://na.api.pvp.net'});
-	}, delay);
+// Low priority queue
+var lowPriorityServer = http.createServer(function (req, res) {
+	req.on('error', genericServerErrorHandler.bind(null));
+	res.on('error', genericServerErrorHandler.bind(null));
+	// pick a key
+	var key = getKey();
+
+	key.queue(function (apiKey) {
+		sendRequest(apiKey, req, res);
+	}, false);
+ 
 });
+lowPriorityServer.listen(LOW_PRIORITY_PORT);
+
+// High priority queue
+var highPriorityServer = http.createServer(function (req, res) {
+	req.on('error', genericServerErrorHandler.bind(null));
+	res.on('error', genericServerErrorHandler.bind(null));
+	// pick a key
+	var key = getKey();
+	
+	key.queue(function (apiKey) {
+		sendRequest(apiKey, req, res);
+	}, true); // <-- difference from low priority queue
+});
+highPriorityServer.listen(HIGH_PRIORITY_PORT);
 
 console.log('listening');
-server.listen(8000);
 
 
 /**
@@ -180,4 +224,4 @@ var diagnosticServer = http.createServer(function (req, res) {
 });
 
 console.log('listening on diagnostic server');
-diagnosticServer.listen(8001);
+diagnosticServer.listen(DIAGNOSTIC_PORT);
