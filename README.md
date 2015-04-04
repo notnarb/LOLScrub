@@ -6,7 +6,7 @@ T.B.D. what this will do in the end.  Currently just does a decent job of storin
 # Example (how to run)
 ## Start a mongodb container
 
-Note: I am naming this container 'urf2015db'.  This name is needed to link other containers to this database
+Note: I am naming this container 'urf2015db'.  This name is needed to link other containers to this database.  /mnt/hardly-know-er/Workspace/mongo/ is the persistant storage where mongo will store its database files.  This is important because otherwise you will lose your data between runs of the mongo container
 
 > sudo docker run --name urf2015db -v /mnt/hardly-know-er/Workspace/mongo/:/data/db/ -d mongo
 
@@ -59,3 +59,18 @@ Build the image
 Run the image linking the previously created 'urf2015db' as the mongo host and 'ambo' as the riotambassador host
 
 > sudo docker run --link urf2015db:mongo --link ambo:riotambassador matchlookup
+
+# Quering the database
+
+Looks a little silly, but here's a quick command to query the database to see if it's working
+
+>$ sudo docker run -it --link urf2015db:mongo mongo mongo mongo/urfday
+> MongoDB shell version: 3.0.1
+> connecting to: mongo/urfday
+> Welcome to the MongoDB shell.
+> ...
+> > db.matches.count()
+> 54133
+> >
+
+run the 'mongo' container starting with the 'mongo' command and access the database at 'mongo/urfday' (mongo being the link set up between this instance and a container
