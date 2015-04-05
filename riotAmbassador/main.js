@@ -161,6 +161,10 @@ function getKey () {
 	return keyList[lastKeyUsed];
 }
 
+proxy.on('error', function (error) {
+	console.log('Proxy encountered error', error);
+});
+
 /**
  * Given an api key, send a request to the riot API
  * @param {String} apiKey - apiKey as provided to the callback argument to Key#queue()
