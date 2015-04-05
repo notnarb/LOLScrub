@@ -17,10 +17,23 @@ var HTTP_PORT = 8000;
 
 var db = null;
 
+var stats = {
+	variableHits: 0,			//number of times a name was found in the local name map
+	databaseHits: 0,			//number of times a name was found in the database
+	apiHits: 0					//number of times a name needed to hit the the riot api
+};
+
 // name => id.  Stored in memory to skip hitting the database
 var nameMap = {
 };
 
+
+function InvalidRiotResponseError (name) {
+	Error.call(this);
+	this.name = 'InvalidRiotResponseError';
+	this.message = "Invalid response from Riot api for summoner name: " + name;
+};
+util.inherits(InvalidRiotResponseError, Error);
 
 function RiotApiError (message, code) {
 	Error.call(this);
@@ -83,8 +96,7 @@ function lookupName (name) {
 			riotErrorHandler(body.status.status_code);
 		}
 		if (!body || !body[name] || !body[name].id) {
-			console.log(body);
-			throw "Invalid response, missing body";
+			throw new InvalidRiotResponseError(name);
 		}
 		return body[name].id;
 	}).catch(RiotApiError, function (error) {
@@ -117,6 +129,8 @@ function getSummonerId(summonerName) {
 	}
 	// check if name is in local cache
 	if (nameMap[name]) {
+		console.log('variable hit', name);
+		stats.variableHits += 1;
 		return Promise.resolve(nameMap[name]);
 	}
 	// check if name is in local db
@@ -124,6 +138,8 @@ function getSummonerId(summonerName) {
 		.then(function (result) {
 			// name is stored
 			if (result && result.id) {
+				console.log('database hit', name);
+				stats.databaseHits += 1;
 				return result.id;
 			}
 			// query riot for name
@@ -131,8 +147,10 @@ function getSummonerId(summonerName) {
 				if (!id || ((typeof id) !== "number")) {
 					throw "Invalid id response from lookupName";
 				}
+				console.log('api hit', name);
+				stats.apiHits += 1;
 				nameMap[name] = id;
-				return db.collection('summonerInfo').insert({name: name, id: id}).then(function () {
+				return db.collection('summonerInfo').insertAsync({name: name, id: id}).then(function () {
 					return id;
 				});
 			});
@@ -152,10 +170,12 @@ function errorResponse(res, error) {
 var client = mongodb.MongoClient.connectAsync('mongodb://mongo:27017/urfday').then(function (foundDb) {
 	db = foundDb;
 	http.createServer(function (req, res) {
-		res.writeHead(200, {'Content-Type': 'application/json'});
 		var parsedUrl = url.parse(req.url).path;
 		var urlPieces = parsedUrl.split('/');
-		if (urlPieces[1] === 'getid') {
+		if (urlPieces.length <= 1) { // '/' request
+			res.writeHead(200, {'Content-Type': 'application/json'});
+			res.end(JSON.stringify(stats));
+		} else if (urlPieces[1] === 'getid') {
 			getSummonerId(urlPieces[2])
 				.then(function (validId) {
 					res.writeHead(200, {'Content-Type': 'application/json'});
