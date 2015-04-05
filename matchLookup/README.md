@@ -10,11 +10,3 @@ This service communicates with an http host over port 8000 accessible at the hos
 docker build -t matchLookup .
 ## To run
 docker run [--link mongoContainerName:mongo] [--link riotAmbassadorContainerName:riotambassador] matchLookup
-
-
-# TODO:
-
-* Currently this will run until it is out of IDs and exit, it should instead start polling once it is out of IDs
-
-* Currently it will do a lookup of all stored IDs.  It should in the future
-  determine which Ids have been looked up and not query them.
