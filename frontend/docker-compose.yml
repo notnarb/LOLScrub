@@ -1,0 +1,13 @@
+appserver:
+  build: appserver/
+webproxy:
+  build: webproxy/
+  links:
+    - appserver
+  volumes_from:
+    - static
+  ports:
+    - "80:80"
+    - "443:443"
+static:
+  build: static-files/
