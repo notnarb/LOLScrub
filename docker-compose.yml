@@ -1,0 +1,25 @@
+urf2015db:
+  image: mongo
+  volumes:
+    - /mnt/urfdb/:/data/db/
+riotambassador:
+  build: riotAmbassador/
+matchgetter:
+  build: matchGetter/
+  links:
+    - riotambassador
+    - urf2015db:mongo
+matchlookup:
+  build: matchLookup/
+  links:
+    - riotambassador
+    - urf2015db:mongo
+summonerlookup:
+  build: summonerLookup/
+  links:
+    - riotambassador
+    - urf2015db:mongo
+backendambassador:
+  build: backendAmbassador/
+  links:
+    - summonerlookup

@@ -3,6 +3,11 @@ Collection of small services that together make up an entry to the Riot Games 4-
 # Description
 T.B.D. what this will do in the end.  Currently just does a decent job of storing match information into a mongo db instance
 
+# Running with docker compose
+1. Download docker-compose (I used 1.10)
+2. 'docker-compose up' (See docker-compose.yml for what will be named what)
+3. Make sure all services started with 'docker-compose ps'.  Currently some services will fail if they attempt to connect to the database while it is initializing
+
 # Example (how to run)
 ## Start a mongodb container
 

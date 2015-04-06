@@ -21,10 +21,19 @@ var idsToCheck = {};
 // Match list time -> true (has been added to id map)
 var matchListMap = {};
 
-var db;
+// Number of times to retry connecting to the database
+var numRetriesLeft = 10;
 
-var client = mongodb.MongoClient.connectAsync('mongodb://mongo:27017/urfday')
+/**
+ * Main process.  Connects to the database, initializes the ID list, then starts
+ * looping over it
+ */
+function initDb() {
+	var db;
+	mongodb.MongoClient.connectAsync('mongodb://mongo:27017/urfday')
+		.catch(retryDbConnection)
 		.then(function (foundDb) {
+			console.log('connected to database');
 			db = foundDb;
 			// fill list of already obtained match ids
 			return initializeIdMap(db.collection('matches'));
@@ -35,8 +44,26 @@ var client = mongodb.MongoClient.connectAsync('mongodb://mongo:27017/urfday')
 			// iterate over idsToCheck
 			lookupLoop(db);
 		}).catch(function (error) {
-			console.log('Found error', error, 'exiting');
+			console.log('Found error', error);
 		});
+}
+
+/**
+ * Error handler for initial database connection.  Attempts to gracefully
+ * reconnect after 5 seconds.  Kills the process if too many retry attempts have
+ * been made
+ */
+function retryDbConnection (error) {
+	if (numRetriesLeft > 0) {
+		numRetriesLeft -= 1;
+		Promise.delay(5000).then(function () {
+			initDb();
+		});
+		throw new Error("Failed to connect to database, retrying in 5 seconds");
+	}
+	console.log("Failed to connect to database, exiting");
+	process.exit(1);
+}
 
 
 function RiotApiError (message, code) {
@@ -102,11 +129,12 @@ function initializeIdMap (collection) {
  */
 function queueMatchId (matchId) {
 	if (idMap[matchId]) {
-		console.log('Duplicate match', matchId, 'already has been checked');
+		process.stdout.write('.'); //duplicate match 
 		return;
 	}
 	if (idsToCheck[matchId]) {
-		console.log('Duplicate match', matchId, 'already has been queued to be checked');
+		process.stdout.write('.'); //duplicate match
+		// console.log('Duplicate match', matchId, 'already has been queued to be checked');
 		return;
 	}
 	idsToCheck[matchId] = true;
@@ -249,8 +277,17 @@ function storeMatch (collection, resultBody) {
 
 }
 
-http.createServer(function (req, res) {
-	var response = String(Object.keys(idsToCheck).length);
-	res.writeHead(200, {'Content-Type': 'application/json'});
-	res.end(response);
-}).listen(8001);
+/**
+ * Initializes the http listener
+ */
+function initHttp () {
+	http.createServer(function (req, res) {
+		var response = String(Object.keys(idsToCheck).length);
+		res.writeHead(200, {'Content-Type': 'application/json'});
+		res.end(response);
+	}).listen(8001);
+	console.log('Http server initialized');
+}
+
+initDb();
+initHttp();
