@@ -4,7 +4,7 @@ import sys;
 import scipy;
 import matplotlib.pyplot as plt;
 import numpy;
-
+import time;
 
 print("running match processor");
 
@@ -76,6 +76,22 @@ def initSoloKillRawDB():
 
 
 
+
+
+def FindMostCommonBuildsPerMin():
+
+    # add a sort
+    #this.find({'$and'[{'$or':[{'killerChampID':searchChampID},{'victimChampID':searchChampID}]},{'MinuteMark':searchMin}]}).forEach(function(this){emit{
+    #map function () {db.totalKillCollection.find({'$and'[{'killerChampID':searchChampID},{'MinuteMark':searchMin}]}).forEach(function(){emit(this.sort(KillerItems),1)})}
+    #function(key, values){
+    #mapF = 'function () {this.participants.forEach(function (participant) {emit(participant.championId, {pentakills: participant.stats.pentaKills,numGames:1})})}'
+    #reduceF  = 'function (key, values) { var numPenta = 0; numGames = 0; for (var i = 0; i < values.length;i++){ var value = values[i]; numPenta+=value.pentakills; numGames+=value.numGames;} return {pentakills:numPenta,numGames:numGames}; }'
+    #result = db.totalKillCollection.map_reduce(mapF,reduceF,"{out:{inline:1}}")#{out:{inline:1}})
+    return
+
+
+
+
 ## Populate DB with raw data of 1v1 kills by iterating Match DB
 def Find1v1s():
 
@@ -122,7 +138,7 @@ def Find1v1s():
 
         #for ever frame in the game
         gameFrames = timeline['frames'];
-        for j in range (0,len(gameFrames)):
+        for j in range(0,len(gameFrames)):
 
             #Ignore super long games for now
             if j > 50:
@@ -227,7 +243,7 @@ def computeSoloKillOddsFromRawData():
                 if(SumKills1 ==0 or SumKills2 ==0):
                     SumKills1=SumKills2=1
                 killPctArray[i] = (fittedKills1[i]/(fittedKills1[i] + fittedKills2[i]))*1-dampingFactor  + dampingFactor*(SumKills1/(SumKills1+SumKills2))
-            #print(killPctArray)
+            print(killPctArray)
             #plt.plot(xAxis,fityAxis,'r--',xAxis,yAxis,'bs');
             #print("original data");
             #print(yAxis)
@@ -270,16 +286,16 @@ def respond():
 
 
 print("Processing Database - process.py")
-setupPentaDB()
+#setupPentaDB()
 
 #this takes a minute or two
-CalculatePentaKillProbability()
+#CalculatePentaKillProbability()
 
 #this is hard coded into Find1v1s
 #initSoloKillRawDB();
 
 #this takes forever to run
-Find1v1s()
+#Find1v1s()
 
 ## this is what youll want to run
-computeSoloKillOddsFromRawData()
+#computeSoloKillOddsFromRawData()
