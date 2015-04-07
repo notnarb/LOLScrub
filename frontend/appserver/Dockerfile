@@ -1,3 +1,3 @@
 FROM node:0.10-onbuild
-
-CMD echo "placeholder" && sleep 9999
+EXPOSE 8000
+CMD node main.js

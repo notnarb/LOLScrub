@@ -1,5 +1,11 @@
+redis:
+  build: redis/
 appserver:
+  env_file:
+    - "secrets.env"
   build: appserver/
+  links:
+    - redis
 webproxy:
   build: webproxy/
   links:
