@@ -1,1 +1,10 @@
-{}
+{
+	"dependencies": {
+		"request": "^2.54.0",
+		"bluebird": "^2.9.21",
+		"morgan": "^1.5.2",
+		"express": "^4.12.3",
+		"redis": "^0.12.1",
+		"connect-timeout": "^1.6.1"
+	}
+}

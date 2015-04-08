@@ -23,3 +23,5 @@ backendambassador:
   build: backendAmbassador/
   links:
     - summonerlookup
+  ports:
+    - "8000:8000"
