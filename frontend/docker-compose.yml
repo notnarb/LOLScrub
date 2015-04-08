@@ -17,3 +17,5 @@ webproxy:
     - "443:443"
 static:
   build: static-files/
+  volumes:
+    - static-files/src/:/home/app/src/:ro
