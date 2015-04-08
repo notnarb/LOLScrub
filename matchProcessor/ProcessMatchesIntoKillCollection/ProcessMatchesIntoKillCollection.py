@@ -15,6 +15,7 @@ def processMatchesIntoKillCollection():
     ProcessMatchCursor=db.ProcessMatchCursor;
     try:
         idToStart = ProcessMatchCursor.find()[0]['LastRun']
+        idToStart = matchCollection.find().sort('_id',1)[0]['_id']
         matchIdToDelete = matchCollection.find({'_id':idToStart})[0]['matchId']
         print("Deleting match ID " + str(matchIdToDelete) + " for being incomplete ")
         KillCollection.remove({'MatchId':matchIdToDelete})
@@ -78,13 +79,16 @@ def processMatchesIntoKillCollection():
             LastSeasonRankFromIDs[participants[j]['participantId']] = participants[j]['highestAchievedSeasonTier']
 
         #print (ParticipantIDs)
-        timeline = matchData['timeline']
-        if(timeline['frameInterval'] != 60000):
-            # throw an error, We don't expect data that isn't at 1 minute margins
-            raise Exception('Wrong_Frame_Interval')
+        try:
+            timeline = matchData['timeline']
+            if(timeline['frameInterval'] != 60000):
+                # throw an error, We don't expect data that isn't at 1 minute margins
+                raise Exception('Wrong_Frame_Interval')
 
-        #for every frame in the game
-        gameFrames = timeline['frames']
+            #for every frame in the game
+            gameFrames = timeline['frames']
+        except:
+            break;
 
         PlayerItems = [];
         for item in range(0,11):
