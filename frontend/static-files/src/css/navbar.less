@@ -1,0 +1,30 @@
+@import "colors";
+@import "mixins";
+#navbar {
+	width: 240px;
+	box-sizing: border-box;
+	background-color: @blueGrey600;
+	color: white;
+	.Flex(flex-start, column);
+	padding: 16px 8px 16px 24px;
+	.navItem {
+		.FlexChild(0, 1, 1);
+		font-size: 16px;
+		line-height: 47px;		//1px for separator
+		max-height: 47px;
+		cursor: pointer;
+		// bigger click targets
+		width: 100%;
+		&:hover {
+			color: @grey300;
+		}
+	}
+	.navSeparator {
+		.FlexChild(0,0,0);
+		height: 1px;
+		width: 100%;
+		background-color: @blueGrey500;
+	}
+	.zdepth2();
+
+}
