@@ -25,3 +25,7 @@ backendambassador:
     - summonerlookup
   ports:
     - "8000:8000"
+killcollector:
+  build: matchProcessor/ProcessMatchesIntoKillCollection/
+  links:
+    - urf2015db:mongo
