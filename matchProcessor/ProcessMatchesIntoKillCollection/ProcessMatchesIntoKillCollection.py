@@ -15,7 +15,6 @@ def processMatchesIntoKillCollection():
     ProcessMatchCursor=db.ProcessMatchCursor;
     try:
         idToStart = ProcessMatchCursor.find()[0]['LastRun']
-        idToStart = matchCollection.find().sort('_id',1)[0]['_id']
         matchIdToDelete = matchCollection.find({'_id':idToStart})[0]['matchId']
         print("Deleting match ID " + str(matchIdToDelete) + " for being incomplete ")
         KillCollection.remove({'MatchId':matchIdToDelete})
