@@ -1,4 +1,5 @@
 @import "colors.less";
+@import "mixins.less";
 @headerHeight: 56px;
 
 #header {
@@ -8,9 +9,40 @@
 	padding-left: 8px;
 	padding-right: 16px;
 	background-color: @cyan400;
+	.Flex();
 	.logo {
+		// Can grow, can't shrink
+		.FlexChild(0, 1, 0);
 		font-size: 20px;
 		font-weight: 600;
 		line-height: @headerHeight;
 	}
+	.userInfo {
+		// Can't grow, can't shrink
+		.FlexChild(0, 0, 0);
+		.name {
+			font-size: 16px;
+			line-height: @headerHeight;
+			display: inline-block;
+			vertical-align: top;
+		}
+		input {
+			display: inline-block;
+			box-sizing: border-box;
+			padding: 2px 4px;
+			border-radius: 2px;
+			border: 0;
+			margin-top: 16px;	//16px above and below + 24px = 56
+			height: 24px;		//mirror button height
+		}
+		.button {
+			display: inline-block;
+			margin-top: 16px;	//24px + 16x2 = 56
+			margin-left: 8px;
+			&.login {
+				background-color: white;
+			}
+		}
+	}
+
 }

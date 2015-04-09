@@ -1,9 +1,40 @@
 /**
  * Base styles to inherit
  */
+@import "mixins";
+
 body {
 	font-family: 'Source Sans Pro';
 	font-size: 13px;
 	// no selection here folks
 	cursor: default;
+}
+
+
+
+.button {
+	cursor: pointer;
+	text-align: center;
+	padding: 4px 8px;
+	font-size: 13px;
+	line-height: 16px;
+	// 16px + 4px above and below = 24px;
+	box-sizing: border-box;
+	min-width: 48px;
+	border-radius: 2px;
+	
+	&.raised {
+		.zdepth1();
+		transition: box-shadow 0.3s;
+		&:hover {
+			.zdepth2();
+		}
+	}
+	&.lowered {
+		text-decoration: underline;
+		&:hover {
+			text-decoration: initial;
+		}
+	}
+	
 }
