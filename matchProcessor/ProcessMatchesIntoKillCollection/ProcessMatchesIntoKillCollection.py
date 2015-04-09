@@ -90,7 +90,7 @@ def processMatchesIntoKillCollection():
             #for every frame in the game
             gameFrames = timeline['frames']
         except:
-            break;
+            continue;
 
         PlayerItems = [];
         for item in range(0,11):
