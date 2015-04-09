@@ -1,5 +1,17 @@
-FROM node:0.10-onbuild
-# diagnostic port 
-EXPOSE 8001
-# Set defualt command
-CMD ["node", "main.js"]
+From ubuntu
+RUN apt-get update
+RUN apt-get install -y python python-dev python-distribute python-pip 
+RUN apt-get install -y python-numpy
+RUN apt-get install -y python-scipy
+RUN apt-get install -y python-matplotlib 
+
+RUN sudo pip install pymongo
+RUN sudo pip install numpy
+RUN sudo pip install scipy
+RUN sudo pip install matplotlib
+
+WORKDIR /ConvertKillDataToOdds
+Add . /ConvertKillDataToOdds
+
+
+CMD python /ConvertKillDataToOdds/OutputOdds.py

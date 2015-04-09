@@ -15,16 +15,18 @@ def processMatchesIntoKillCollection():
     ProcessMatchCursor=db.ProcessMatchCursor;
     try:
         idToStart = ProcessMatchCursor.find()[0]['LastRun']
-        idToStart = matchCollection.find().sort('_id',1)[0]['_id']
         matchIdToDelete = matchCollection.find({'_id':idToStart})[0]['matchId']
         print("Deleting match ID " + str(matchIdToDelete) + " for being incomplete ")
-        KillCollection.remove({'MatchId':matchIdToDelete})
     except:
         KillCollection.drop()
         print("We have not processed any games, starting from the beginning!");
         idToStart = matchCollection.find().sort('_id',1)[0]['_id']
         print("New starting _id is " + str(idToStart));
-
+    else:
+        try:
+            KillCollection.remove({'MatchId':matchIdToDelete})
+        except:
+            print(" We decided to ignore this case, Continuing with same collection without dropping");
 
 
     matchCursor = matchCollection.find({'_id':{'$gte':idToStart}}).sort('_id',1)
@@ -54,9 +56,9 @@ def processMatchesIntoKillCollection():
 
          #   continue;
         print ("Saving ID " + str(nextID))
-        ProcessMatchCursor.drop();
+        previousRunID = ProcessMatchCursor.find()[0]['_id']
         ProcessMatchCursor.insert({'LastRun':nextID})
-
+        ProcessMatchCursor.remove({'_id':previousRunID})
 
         if(i%10 == 0):
             sys.stdout.write("    " + str(KillCollection.count()) +"/"+ str(matchCollection.count()) + " Matches Analyzed\r")
