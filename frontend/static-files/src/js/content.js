@@ -2,6 +2,7 @@
  * Controller for the main content container
  */
 var currentGameTemplate = require('../tmpl/currentGame.hbs');
+var aboutPageTemplate = require('../tmpl/about.hbs');
 // Main content container
 var content;
 
@@ -18,7 +19,7 @@ module.exports.render = function () {
 
 
 module.exports.aboutScreen = function () {
-	content.html("TODO: about our app");
+	content.html(aboutPageTemplate({}));
 };
 
 /**
