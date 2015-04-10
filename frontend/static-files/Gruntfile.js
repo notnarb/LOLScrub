@@ -30,8 +30,30 @@ module.exports = function(grunt) {
 			css : {
 				tasks : ['less:main'],
 				files : ['src/css/**/*.css','src/css/**/*.less']
+			},
+			static : {
+				files : ['src/root/**'],
+				tasks : ['clean', 'copy'] //If a file changes in the static root, delete all files then copy new ones
 			}
         },
+		clean : {
+			main: {
+				// Clean up all files not in the css or js folders.  Assume they are added by 'copy' task
+				src: [ROOTDIR + "/**", "!" + ROOTDIR + "/css/**", "!" + ROOTDIR + "/js/**"],
+				options: {force: true}
+			}
+		},
+		copy : {
+			main : {
+				files : [{
+					expand: true,
+					cwd: 'src/root/', //from the perspective of the root folder
+					src: ['**'],	  //copy all files with the same structure
+					dest: ROOTDIR,
+					filter: 'isFile'
+				}]
+			}
+		},
         uglify : {
 			libs : {
 				options : {
@@ -70,8 +92,10 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-contrib-uglify');
 	grunt.loadNpmTasks('grunt-contrib-handlebars');
 	grunt.loadNpmTasks('grunt-contrib-less');
+	grunt.loadNpmTasks('grunt-contrib-clean');
+	grunt.loadNpmTasks('grunt-contrib-copy');
 
     // The default tasks to run when you type: grunt
-    grunt.registerTask('default', ['browserify', 'less', 'uglify']);
+    grunt.registerTask('default', ['browserify', 'less', 'uglify', 'clean', 'copy']);
     grunt.registerTask('w', ['watch']);
 };
