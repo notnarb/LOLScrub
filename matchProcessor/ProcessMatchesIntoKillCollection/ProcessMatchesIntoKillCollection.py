@@ -56,9 +56,12 @@ def processMatchesIntoKillCollection():
 
          #   continue;
         print ("Saving ID " + str(nextID))
-        previousRunID = ProcessMatchCursor.find()[0]['_id']
-        ProcessMatchCursor.insert({'LastRun':nextID})
-        ProcessMatchCursor.remove({'_id':previousRunID})
+        if(ProcessMatchCursor.count() == 1):
+            previousRunID = ProcessMatchCursor.find()[0]['_id']
+            ProcessMatchCursor.insert({'LastRun':nextID})
+            ProcessMatchCursor.remove({'_id':previousRunID})
+        else:
+            ProcessMatchCursor.insert({'LastRun':nextID})
 
         if(i%10 == 0):
             sys.stdout.write("    " + str(KillCollection.count()) +"/"+ str(matchCollection.count()) + " Matches Analyzed\r")
@@ -90,7 +93,7 @@ def processMatchesIntoKillCollection():
             #for every frame in the game
             gameFrames = timeline['frames']
         except:
-            break;
+            continue;
 
         PlayerItems = [];
         for item in range(0,11):
