@@ -115,7 +115,11 @@ app.use(function baseHandler (req, res) {
 
 
 function ErrorHandler (err, req, res, next) {
-	res.writeHead(500, {'Content-Type': 'application/json'});
+	var errorCode = 500;
+	if (err.code) {
+		errorCode = err.code;
+	}
+	res.writeHead(errorCode, {'Content-Type': 'application/json'});
 	res.end(JSON.stringify({
 		error: err
 	}));

@@ -1,0 +1,11 @@
+<div class="userInfo">
+  <form>
+    {{#if name}}
+      <div class="name">{{name}}</div>
+      <div class="lowered logout button" data-action="logout">Logout</div>
+    {{else}}
+      <input data-login placeholder="Enter summoner name"/>
+      <div class="raised login button" data-action="login">Login</div>
+    {{/if}}
+  </form>
+</div>

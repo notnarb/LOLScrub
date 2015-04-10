@@ -5,9 +5,15 @@
 /*global localStorage:true*/
 var Promise = require('bluebird');
 var helpers = require('./helpers');
-
+var events = require('events');
 // Object containing info about the user
 var storedInfo;
+
+
+/**
+ * Emit events when user info changes so UI knows to update
+ */
+module.exports.ee = new events.EventEmitter();
 
 /**
  * Initializes this module.  checks local storage to see if there is an existing name
@@ -24,6 +30,7 @@ module.exports.init = function () {
 		module.exports.forgetInfo();
 	}
 };
+
 
 /**
  * Store info about this user for later (via local storage and local variable)

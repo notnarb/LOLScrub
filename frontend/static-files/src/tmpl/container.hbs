@@ -1,4 +1,8 @@
 {{! Main container }}
-<div id="header"></div>
-<div id="leftPane"></div>
-<div id="content"></div>
+<div id="container">
+  <div id="header"></div>
+  <div id="bottomContainer">    {{!used to allow for vertical flexbox for 100% height}}
+    <div id="navbar"></div>
+    <div id="content"></div>
+  </div>
+</div>

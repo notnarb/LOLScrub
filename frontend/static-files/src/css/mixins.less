@@ -1,0 +1,46 @@
+.Flex(@flex-justify: flex-start, @flex-direction: row, @align-content: stretch, @align-items: flex-start, @flex-wrap: nowrap) {
+	display: -webkit-box;
+	display: -moz-box;
+	display: -ms-flexbox;
+	display: -webkit-flex;
+	display: flex;
+	-webkit-flex-direction: @flex-direction;
+	-ms-flex-direction: @flex-direction;
+	flex-direction: @flex-direction;
+	-webkit-flex-wrap: @flex-wrap;
+	-ms-flex-wrap: @flex-wrap;
+	flex-wrap: @flex-wrap;
+	-webkit-justify-content: @flex-justify;
+	-ms-flex-pack: @flex-justify;		//should be 'start' -- 2badIE
+	justify-content: @flex-justify;
+	-webkit-align-content: @align-content;
+	-ms-flex-line-pack: @align-content;
+	align-content: @align-content;
+	-webkit-align-items: @align-items;
+	-ms-flex-align: @align-items;		//should be 'start' -- 2badIE
+	align-items: @align-items;
+}
+
+
+.FlexChild(@order: 0, @flex-grow: 0, @flex-shrink: 1, @flex-basis: auto) {
+	-webkit-box-ordinal-group: @order;
+	-webkit-order: @order;
+	-moz-box-ordinal-group: @order;
+	-ms-flex-order: @order;
+	order: @order;
+
+	-webkit-box-flex: @flex-grow @flex-shrink @flex-basis;
+	-webkit-flex: @flex-grow @flex-shrink @flex-basis;
+	-moz-box-flex: @flex-grow @flex-shrink @flex-basis;
+	-ms-flex: @flex-grow @flex-shrink @flex-basis;
+	flex: @flex-grow @flex-shrink @flex-basis;
+	
+}
+
+// TODO: make this take params
+.zdepth1() {
+	box-shadow: 0px 1px 2px rgba(0, 0, 0, 0.5);
+}
+.zdepth2() {
+	box-shadow: 0px 1px 4px rgba(0, 0, 0, 0.7);
+}

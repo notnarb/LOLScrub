@@ -1,9 +1,71 @@
 /**
- * Base styles to inherit
+ * Base styles to inherit and base styles for element classes
  */
+@import "mixins";
+
+html {
+	height: 100%;
+}
 body {
+	height: 100%;
 	font-family: 'Source Sans Pro';
 	font-size: 13px;
 	// no selection here folks
 	cursor: default;
+}
+// Main layout
+#container {
+	height: 100%;
+	.Flex(flex-start, column);
+}
+#header {
+	// Can't grow, can't shrink
+	.FlexChild(0,0,0)
+}
+#bottomContainer {
+	// Can grow, can't shrink
+	.FlexChild(0,1,0);
+	// allow for stretching on the cross axis (fill vertical space)
+	.Flex(flex-start, row, stretch, stretch);
+	#navbar {
+		// Can't grow, can't shrink (via flexbox at least)
+		.FlexChild(0,0,0);
+	}
+	#content {
+		// can grow, can't shrink
+		.FlexChild(0,1,0);
+	}
+}
+
+.button {
+	cursor: pointer;
+	text-align: center;
+	padding: 4px 8px;
+	font-size: 13px;
+	line-height: 16px;
+	// 16px + 4px above and below = 24px;
+	box-sizing: border-box;
+	min-width: 48px;
+	border-radius: 2px;
+
+	.disabled {
+		cursor: default;
+	}
+	&.raised {
+		.zdepth1();
+		transition: box-shadow 0.3s;
+		&.disabled {
+			box-shadow: none !important;
+		}
+		&:hover {
+			.zdepth2();
+		}
+	}
+	&.lowered {
+		text-decoration: underline;
+		&:hover {
+			text-decoration: initial;
+		}
+	}
+	
 }

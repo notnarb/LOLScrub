@@ -1,14 +1,27 @@
 "use strict";
+// Make it clear when I forget to require bluebird
+window.Promise = undefined;
 var Promise = require('bluebird');
 var containerTemplate = require('../tmpl/container.hbs');
-var headerTemplate = require('../tmpl/header.hbs');
-var userInfo = require('./userInfo');
 
 // window.onLoad
 $(function () {
-	var container = $('#container').html(containerTemplate({}));
+	var container = $('#container');
+	// TODO: better intitial load behavior
+	container.html('Loading...');
+	
+	var containerContent = $(containerTemplate({}));
+
+	var userInfo = require('./userInfo');
 	userInfo.init();
-	var name = userInfo.getName();
-	container.find("#header").html(headerTemplate({name: name}));
+
+	// One day I'll learn a proper framework....
+	var header = require('./header');
+	containerContent.find("#header").replaceWith(header.render());
+
+	var navbar = require('./navbar');
+	containerContent.find('#navbar').replaceWith(navbar.render());
+	
+	container.replaceWith(containerContent);
 });
 

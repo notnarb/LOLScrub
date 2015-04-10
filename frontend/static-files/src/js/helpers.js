@@ -1,6 +1,7 @@
 /**
  * Utility functions
  */
+var Promise = require('bluebird');
 
 /**
  * Performs a get request on the base url
