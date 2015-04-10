@@ -60,7 +60,7 @@ def computeSoloKillOddsFromRawData():
         for y in range(x,len(champIDs)):
             #
             itemToAddX = {'KillerId':champIDs[x],'VictimId':champIDs[y]}
-            itemToAddY = {'KillerId':champIDs[x],'VictimId':champIDs[y]}
+            itemToAddY = {'KillerId':champIDs[y],'VictimId':champIDs[x]}
             #
 
             SmoothArrayChampX = SmoothArray(MapChampOdds[x][y]);
