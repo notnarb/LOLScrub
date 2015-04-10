@@ -3,6 +3,7 @@
  * @desc Module to handle the rendering and actions of the header
  */
 var userInfo = require('./userInfo');
+var navbar = require('./navbar');
 
 var headerTemplate = require('../tmpl/header.hbs');
 var loginTemplate = require('../tmpl/header/login.hbs');
@@ -34,6 +35,9 @@ $('body').on('click', '#header', function (event) {
 	case 'logout':
 		userInfo.forgetInfo();
 		update();
+		break;
+	case 'ohhamburgers':
+		navbar.toggle();
 		break;
 	default:
 		console.log('Unknown action', data.action);

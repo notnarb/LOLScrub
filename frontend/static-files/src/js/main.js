@@ -6,6 +6,9 @@ var containerTemplate = require('../tmpl/container.hbs');
 
 // window.onLoad
 $(function () {
+	// Tell velocity to use Bluebird as the Promise library
+	$.Velocity.Promise = Promise;
+	
 	var container = $('#container');
 	// TODO: better intitial load behavior
 	container.html('Loading...');
@@ -21,6 +24,9 @@ $(function () {
 
 	var navbar = require('./navbar');
 	containerContent.find('#navbar').replaceWith(navbar.render());
+
+	var content = require('./content');
+	containerContent.find('#content').replaceWith(content.render());
 	
 	container.replaceWith(containerContent);
 });

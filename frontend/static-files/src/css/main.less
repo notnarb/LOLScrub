@@ -16,13 +16,17 @@ body {
 // Main layout
 #container {
 	height: 100%;
-	.Flex(flex-start, column);
+	// allow for stretching on the cross axis (fill vertical space)
+	.Flex(flex-start, column, stretch, stretch);
 }
 #header {
 	// Can't grow, can't shrink
-	.FlexChild(0,0,0)
+	.FlexChild(0,0,0);
+	z-index: 100;
 }
 #bottomContainer {
+	// Below the header
+	z-index: 0;
 	// Can grow, can't shrink
 	.FlexChild(0,1,0);
 	// allow for stretching on the cross axis (fill vertical space)
