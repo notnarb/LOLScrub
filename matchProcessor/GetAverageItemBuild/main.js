@@ -1,11 +1,11 @@
 
 var mongodb = require('mongodb');
-function map(){
 
 
+var map = function(){
 
     // ANything with group containing "flasks", "relicBase" "ward" "potion"
-    skippedItems = [
+    var skippedItems = [
     3361, // Greater Stealth Totem
     3362, // Greater Vision Totem
     3363, // Farsight Orb
@@ -26,7 +26,7 @@ function map(){
     2050, // Explorer's ward
     2047, // oracle's extract
     2044, // stealth ward
-    2043, // pink ward
+    2043 // pink ward
     ];
 
     var killerKey = [this.KillerChampId,this.MinuteMark].join("-");//, this.minuteMark].join("-");
@@ -53,9 +53,9 @@ function map(){
 
     emit(killerKey, killerRetVal);
     emit(victimKey, victimRetVal);
-}
+};
 
-function reduce (key, resultsList){
+var reduce = function (key, resultsList){
     var retval = {};
     resultsList.forEach(function (itemBuildMap){
     // go through each type of build within the build
@@ -67,37 +67,45 @@ function reduce (key, resultsList){
             retval[buildId] += itemBuildMap[buildId];
         });
     });
-    return retval
-}
+    return retval;
+};
 
-var finalize = function (key,value){
+function finalize (key,value){
     var res=key.split("-");
+
     var sortable = [];
-    for(var build in value)
-        if(value.hasOwnProperty(build))
-            sortable.push([build,value[build]]);
+    for(var build in value){
+        sortable.push([build,value[build]]);
 
-    sortable.sort(function(a,b){
-        return b[1]-a[1]
-
-    })
-
-
-
-    return({"ChampId":res[0],"MinuteMark":res[1],"count":sortable[0]});
+    }
+    sortable.sort(function(a,b){return b[1] - a[1]});
+    var topBuild = sortable[0];
+    return({"ChampId":res[0],"MinuteMark":res[1],"TopBuild":topBuild});
 
 }
-//db.AverageItemBuildPerMinute.drop();
-//db.totalKillCollection.mapReduce(map,reduce,{out:'AverageItemBuildPerMinute'});
+
+
+
+db.AverageItemBuildPerMinute.drop();
+db.totalKillCollection.mapReduce(map,reduce,{out:'AverageItemBuildPerMinute',finalize:finalize});
+
+
 
 var db;
 mongodb.connect ('mongodb://mongo:27017/urfday',function(err,db){
     if  (err){return console.dir(err);}
     console.log("We are connected to the DB");
     db.collection('AverageItemBuildPerMinute').drop();
-    db.collection('totalKillCollection').mapReduce(map,reduce,{out:'AverageItemBuildPerMinute'});//,finalize:finalize});
+    db.collection('totalKillCollection').mapReduce(map,reduce,{out:'AverageItemBuildPerMinute',finalize:finalize});
     console.log("Map reduce complete");
     return;
 
 });
 
+    //var sortable = [];
+    /*for(var build in value){
+        sortable.push([build,value[build]]);
+
+    }*/
+    //sortable.sort(function(a,b){return b[1] - a[1]});
+   // var topBuild = sortable[0];
