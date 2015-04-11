@@ -39,7 +39,7 @@ function InvalidRiotResponseError (name) {
 	Error.call(this);
 	this.name = 'InvalidRiotResponseError';
 	this.message = "Invalid response from Riot api for summoner name: " + name;
-};
+}
 util.inherits(InvalidRiotResponseError, Error);
 
 function NameDoesNotExistError (name) {
@@ -55,7 +55,7 @@ function RiotApiError (message, code) {
 	this.name = 'RiotApiError';
 	this.message = message;
 	this.code = code;
-};
+}
 
 util.inherits(RiotApiError, Error);
 
@@ -320,7 +320,7 @@ function errorResponse(res, error) {
 	}
 		
 	res.end(JSON.stringify({error: error}));
-};
+}
 
 
 app.use(morgan('combined'));

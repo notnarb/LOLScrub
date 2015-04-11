@@ -1,0 +1,9 @@
+{
+	"dependencies": {
+		"mongodb": "^2.0.25",
+		"request": "^2.54.0",
+		"bluebird": "^2.9.21",
+		"express": "^4.12.3",
+		"morgan":"^1.5.2"
+	}
+}

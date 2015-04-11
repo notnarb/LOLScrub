@@ -17,6 +17,10 @@ var app = express();
 
 app.use(morgan('combined'));
 
+app.get('/champlist', function (req, res) {
+	console.log('champlist');
+	proxy.web(req, res, {target: 'http://staticgetter:8000'});
+});
 app.get('/summonerlookup/**', function (req, res) {
 	console.log('summonerlookup');
 	proxy.web(req, res, {target: 'http://summonerlookup:8000'});

@@ -25,9 +25,15 @@ backendambassador:
   build: backendAmbassador/
   links:
     - summonerlookup
+    - staticgetter
   ports:
     - "8000:8000"
 killcollector:
   build: matchProcessor/ProcessMatchesIntoKillCollection/
   links:
+    - urf2015db:mongo
+staticgetter:
+  build: staticGetter/
+  links:
+    - riotambassador
     - urf2015db:mongo
