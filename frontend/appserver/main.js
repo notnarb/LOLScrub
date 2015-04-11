@@ -116,8 +116,9 @@ app.get('/getmyinfo/:summonerName', function (req, res, next) {
 		res.end(JSON.stringify(response));
 	}).catch(function (error) {
 		ErrorHandler(error, req, res, next);
-	});;
+	});
 });
+
 
 /**
  * Handler for requests which fall through all other requests

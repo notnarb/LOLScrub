@@ -67,7 +67,13 @@ function login () {
 		userInfo.setName(input.val())
 			.then(update)
 			.catch(function (error) {
-				alert('Failed to log in');
+				// ugh... this should probably be handled better
+				if (error && error.responseJSON && error.responseJSON.error && error.responseJSON.error.message) {
+					// and while I'm at it I shouldn't use alerts...
+					alert(error.responseJSON.error.message);
+				} else {
+					alert('failed to log in: unknown error');
+				}
 			})
 			.finally(function () {
 				loginButton.html(previousText);
