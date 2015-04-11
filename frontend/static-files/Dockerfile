@@ -5,7 +5,6 @@ RUN apt-get update
 RUN apt-get install -y nodejs build-essential npm nodejs-legacy
 RUN npm install -g grunt-cli
 RUN mkdir -p /var/www/html/
-COPY index.html /var/www/html/
 # read/execute for files in /var/www/html since they will be imported by another container
 RUN chmod -R 555 /var/www/html
 RUN mkdir -p /home/app/src

@@ -48,43 +48,58 @@ app.use(ErrorHandler);
 
 
 /**
- * Checks the backend for the summoner ID
+ * Checks the backend for the summoner info
  * @param {String} summonerName
- * @returns {Promise} resolves with summoner ID
- * @throws UnknownServerError if no ID or error is found
+ * @returns {Promise} resolves with summoner info
+ * @throws UnknownServerError if no summoner is found
  * @throws UnknownSummonerError if there appears to be an invalid summoner name
  */ 
-function lookupSummonerId (summonerName) {
-	return request.getAsync('/getid/' + summonerName).then(function (results) {
+function lookupSummonerInfo (summonerName) {
+	return request.getAsync('/summonerlookup/' + summonerName).then(function (results) {
 		var response = results[0];
 		var responseBody = results[1];
-		if (responseBody.id) {
-			return responseBody.id;
-		} else if (responseBody.error) {
+		// if (responseBody.id) {
+		// 	return responseBody.id;
+		// } else if (responseBody.error) {
+		// 	throw new UnknownSummonerError(summonerName);
+		// } else {
+		// 	throw new UnknownServerError();
+		// }
+		if (responseBody.invalidName) {
+			redisClient.hset("nameMap", summonerName, JSON.stringify(responseBody));
 			throw new UnknownSummonerError(summonerName);
-		} else {
-			throw new UnknownServerError();
+		} 
+		if (responseBody.results) {
+			return responseBody.results;
 		}
+		console.log('unknown server error', responseBody);
+		throw new UnknownServerError();
 	});
 }
 
 /**
- * Obtains the summoner ID.  First checks cache, then checks backend
+ * Obtains the summoner Info.  First checks cache, then checks backend
  * @param {String} summonerName
- * @returns {Promise} - resolves with summoner Id
+ * @returns {Promise} - resolves with summoner Info
  */
-function getSummonerId (summonerName) {
+function getSummonerInfo (summonerName) {
 	return redisClient.hgetAsync("nameMap", summonerName)
 		.then(function (result) {
 			if (result) {
-				console.log('redis hit', summonerName);
-				return parseInt(result, 10);
+				console.dir(result);
+				console.log('redis hit', summonerName, result);
+				var parsedResult = JSON.parse(result);
+				if (parsedResult.invalidName) {
+					throw new UnknownSummonerError(summonerName);
+				}
+				return parsedResult;
 			} else {
 				console.log('redis miss', summonerName);
-				return lookupSummonerId(summonerName).then(function (id) {
+				return lookupSummonerInfo(summonerName).then(function (info) {
 					// store id for future use
-					redisClient.hset("nameMap", summonerName, id);
-					return id;
+					console.log(info);
+					redisClient.hset("nameMap", summonerName, JSON.stringify(info));
+					return info;
 				});
 			}
 		});
@@ -92,16 +107,18 @@ function getSummonerId (summonerName) {
 
 app.get('/getmyinfo/:summonerName', function (req, res, next) {
 	var summonerName = req.params.summonerName;
-	getSummonerId(summonerName).then(function (id) {
+	getSummonerInfo(summonerName).then(function (info) {
 		var response = {
-			id: id
+			name: info.name,
+			profileIconId: info.profileIconId
 		};
 		res.writeHead(200, {'Content-Type': 'application/json'});
 		res.end(JSON.stringify(response));
 	}).catch(function (error) {
 		ErrorHandler(error, req, res, next);
-	});;
+	});
 });
+
 
 /**
  * Handler for requests which fall through all other requests

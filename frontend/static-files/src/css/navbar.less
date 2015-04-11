@@ -6,8 +6,15 @@
 	background-color: @blueGrey600;
 	color: white;
 	.Flex(flex-start, column);
-	padding: 16px 8px 16px 24px;
+	padding-top: 16px;
+	overflow: hidden;
+	// handle item padding within each item
 	.navItem {
+		padding-left: 16px;
+		padding-right: 8px;
+		whitespace: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis; //just cuz I think it's neat
 		.FlexChild(0, 1, 1);
 		font-size: 16px;
 		line-height: 47px;		//1px for separator
@@ -15,6 +22,17 @@
 		cursor: pointer;
 		// bigger click targets
 		width: 100%;
+		&.active {
+			color: @cyan300;
+			cursor: default;
+			&:hover {
+				color: @cyan300;
+			}
+		}
+		&.active:after {
+			margin-left: 8px;
+			content: "\2022";
+		}
 		&:hover {
 			color: @grey300;
 		}

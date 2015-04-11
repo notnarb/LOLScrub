@@ -1,5 +1,7 @@
 {
 	"dependencies": {
-		"http-proxy": "^1.10.0"
+		"http-proxy": "^1.10.0",
+		"express": "^4.12.3",
+		"morgan":"^1.5.2"
 	}
 }

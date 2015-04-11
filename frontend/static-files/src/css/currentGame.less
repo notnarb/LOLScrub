@@ -1,0 +1,59 @@
+@import "mixins";
+@import "colors";
+
+#currentGame {
+	.Flex();
+	.team {
+		// can grow, can't shrink
+		.FlexChild(0, 1, 0);
+		max-width: 50%;
+	}
+
+	.champCard {
+		margin: 16px;
+		padding: 8px;
+		max-width: 256px;
+		.zdepth2();
+		background-color: @grey200;
+		// stretch on cross axis (i.e 100% width in this instance)
+		.Flex(flex-start, column, stretch, space-around);
+		.top {
+			.FlexChild();
+			.Flex();
+			.champPic {
+				// can't grow, can't shrink
+				.FlexChild(0, 0, 0);
+				height: 56px;
+				width: 56px;
+				img {
+					height: 100%;
+					width: 100%;
+				}
+			}
+			.stats {
+				.FlexChild();
+				text-align: center;
+				.name {
+					font-size: 13px;
+					font-weight: 600;
+					line-height: 16px;
+					text-decoration: underline;
+				}
+				.currentOdds {
+					font-size: 28px;
+					line-height: 32px;
+					
+				}
+			}
+		}
+		.bottom {
+			.FlexChild();
+			margin-top: 8px;
+			.chart {
+				height: 56px;
+				width: 100%;
+				border: 1px solid;
+			}
+		}
+	}
+}

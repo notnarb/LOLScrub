@@ -3,6 +3,7 @@
  * @desc Module to handle the rendering and actions of the header
  */
 var userInfo = require('./userInfo');
+var navbar = require('./navbar');
 
 var headerTemplate = require('../tmpl/header.hbs');
 var loginTemplate = require('../tmpl/header/login.hbs');
@@ -35,6 +36,9 @@ $('body').on('click', '#header', function (event) {
 		userInfo.forgetInfo();
 		update();
 		break;
+	case 'ohhamburgers':
+		navbar.toggle();
+		break;
 	default:
 		console.log('Unknown action', data.action);
 	}
@@ -63,7 +67,13 @@ function login () {
 		userInfo.setName(input.val())
 			.then(update)
 			.catch(function (error) {
-				alert('Failed to log in');
+				// ugh... this should probably be handled better
+				if (error && error.responseJSON && error.responseJSON.error && error.responseJSON.error.message) {
+					// and while I'm at it I shouldn't use alerts...
+					alert(error.responseJSON.error.message);
+				} else {
+					alert('failed to log in: unknown error');
+				}
 			})
 			.finally(function () {
 				loginButton.html(previousText);

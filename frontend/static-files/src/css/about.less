@@ -1,0 +1,23 @@
+@import "colors";
+@import "mixins";
+#aboutPage {
+	padding: 16px;
+	box-sizing: border-box;
+	width: 80%;
+	max-width: 650px;
+	// take up all available width of parent
+	.FlexChild(0,1,0);
+	.Flex(flex-start, column);
+	p {
+		.FlexChild(0, 0, 0);
+		text-align: center;
+	}
+	.spacer {
+		// spacer div, can grow, can't shrink
+		.FlexChild(0, 1, 0)
+	}
+	.disclaimer {
+		color: @grey600;
+	}
+	
+}

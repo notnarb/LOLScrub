@@ -6,12 +6,34 @@
 	height: @headerHeight;
 	width: 100%;
 	box-sizing: border-box;
-	padding-left: 16px;
+	padding-left: 8px;
 	padding-right: 16px;
 	background-color: @blueGrey800;
 	color: white;
 	.zdepth1();
 	.Flex();
+	.sidePaneButton {
+		// can't grow, can't shrink
+		.FlexChild(0,0,0);
+		.Flex(space-around, column);
+		.patty {
+			// can't grow, can't shrink
+			.FlexChild(0,0,0);
+			height: 2px;
+			width: 32px;
+			background-color: white;
+			border-radius: 1px;
+		}
+		box-sizing: border-box;
+		// 13px above and below seems to make the hamburger look best
+		padding: 13px 8px;
+		height: @headerHeight;
+		cursor: pointer;
+		margin-right: 8px;
+		&:hover {
+			background-color: @blueGrey700;
+		}
+	}
 	.logo {
 		// Can grow, can't shrink
 		.FlexChild(0, 1, 0);

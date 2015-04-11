@@ -16,6 +16,8 @@ matchlookup:
     - urf2015db:mongo
 summonerlookup:
   build: summonerLookup/
+  volumes:
+    - summonerLookup/src:/usr/src/app/mnt/:ro
   links:
     - riotambassador
     - urf2015db:mongo
@@ -23,6 +25,7 @@ backendambassador:
   build: backendAmbassador/
   links:
     - summonerlookup
+    - staticgetter
   ports:
     - "8000:8000"
 killcollector:
@@ -51,3 +54,8 @@ webserver:
     - urf2015db:mongo
   ports:
     - "8000:8000"
+staticgetter:
+  build: staticGetter/
+  links:
+    - riotambassador
+    - urf2015db:mongo
