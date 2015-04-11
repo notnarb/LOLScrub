@@ -16,6 +16,8 @@ matchlookup:
     - urf2015db:mongo
 summonerlookup:
   build: summonerLookup/
+  volumes:
+    - summonerLookup/src:/usr/src/app/mnt/:ro
   links:
     - riotambassador
     - urf2015db:mongo

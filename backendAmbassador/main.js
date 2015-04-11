@@ -1,6 +1,8 @@
 var http = require('http');
 var httpProxy = require('http-proxy');
 var url = require('url');
+var express = require('express');
+var morgan = require('morgan');
 
 var proxy = httpProxy.createProxyServer({});
 
@@ -9,6 +11,27 @@ proxy.on('error', function (error, req, res) {
 	res.writeHead(500, {'Content-Type':'application/json'});
 	res.end(JSON.stringify(error));
 });
+
+
+var app = express();
+
+app.use(morgan('combined'));
+
+app.get('/summonerlookup/**', function (req, res) {
+	console.log('summonerlookup');
+	proxy.web(req, res, {target: 'http://summonerlookup:8000'});
+});
+app.get('/matchlookup/**', function (req, res) {
+	console.log('matchlookup');
+	proxy.web(req, res, {target: 'http://summonerlookup:8000'});
+});
+
+app.get('/', function (req, res) {
+	console.log('/');
+	res.writeHead(200, {'Content-Type': 'application/json'});
+	res.end(rootResponse());
+});
+
 
 /**
  * Response to requests to '/'
@@ -21,20 +44,6 @@ function rootResponse () {
 	});
 }
 
-var server = http.createServer(function (req, res) {
-	var parsedUrl = url.parse(req.url).path;
-	var urlPieces = parsedUrl.split('/');
-	console.log('request!', parsedUrl);	
-	if (!parsedUrl || urlPieces.length <= 1) {
-		console.log('/');
-		res.writeHead(200, {'Content-Type': 'application/json'});
-		res.end(rootResponse());
-		return;
-	} else {
-		// TODO: this should bind to an actual location other than 'not "/"'
-		console.log('userLookup');
-		proxy.web(req, res, {target: 'http://summonerlookup:8000'});
-	}
-});
+var server = http.createServer(app);
 
 server.listen(8000);
