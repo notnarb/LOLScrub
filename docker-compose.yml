@@ -29,3 +29,25 @@ killcollector:
   build: matchProcessor/ProcessMatchesIntoKillCollection/
   links:
     - urf2015db:mongo
+oddscalculator:
+  build: matchProcessor/ConvertKillDataToOdds/
+  links:
+    - urf2015db:mongo
+avgitemcollector:
+  build: matchProcessor/GetAverageItemBuild/
+  links:
+    - urf2015db:mongo
+kscollector:
+  build: matchProcessor/GetKSPerChamp/
+  links:
+    - urf2015db:mongo
+itemmatchupcollector:
+  build: matchProcessor/GetStrongestItemAgainst/
+  links:
+    - urf2015db:mongo
+webserver:
+  build: matchProcessor/Webserver/
+  links:
+    - urf2015db:mongo
+  ports:
+    - "8000:8000"

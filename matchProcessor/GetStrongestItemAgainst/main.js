@@ -1,7 +1,7 @@
 var mongodb = require('mongodb');
+ObjectId = require('mongodb').ObjectID;
 
-
-var map = function(){
+var mapFunction = function(){
 
     // ANything with group containing "flasks", "relicBase" "ward" "potion"
     var skippedItems = [
@@ -82,7 +82,7 @@ var map = function(){
     emit(VictimKey, victimItem);
 };
 
-var reduce = function (key, resultsList){
+var reduceFunction = function (key, resultsList){
     var retval = {};
     resultsList.forEach(function (itemBuildMap){
     // go through each type of build within the build
@@ -103,38 +103,79 @@ var reduce = function (key, resultsList){
 var finalize = function (key,value){
     var res=key.split("-");
     var sortable = [];
-    for(var key in obj){
-        if(obj.hasOwnProperty(key)){
-            var builds = obj[key];
-            //console.log(val);
-            for(build in builds){
-                if(builds.hasOwnProperty(build)){
-                    var ItemSet = builds[build]
-                    sortable.push([builds,ItemSet]);
-                }
-            }
-        }
+    retval = {"ChampId":res[0],"VictimId":res[1],"MinuteMark":res[2],"Lead":res[3]};
+    for(var build in value){
+        retval[build] = value[build];
+        sortable.push([build,value[build]]);
+
     }
-    sortable.sort(function(a,b){
-        return b[1]-a[1]
-
-    })
-
-    return({"ChampId":res[0],"MinuteMark":res[1],"MostPopularBuild":sortable[0]});
+    sortable.sort(function(a,b){return b[1] - a[1]});
+    retval["MostPopularItems"]= sortable.slice(0,6);
+    return(retval);//"MostPopularBuild":sortable[0]});
 
 }
 
 
-db.BestItemPerMinute.drop();
-db.totalKillCollection.mapReduce(map,reduce,{out:'BestItemPerMinute'});
 
 var db;
 mongodb.connect ('mongodb://mongo:27017/urfday',function(err,db){
     if  (err){return console.dir(err);}
-    console.log("We are connected to the DB");
-    db.collection('BestItemPerMinute').drop();
-    db.collection('totalKillCollection').mapReduce(map,reduce,{out:'BestItemPerMinute'});//,finalize:finalize});
-    console.log("Map reduce complete");
-    return;
+
+
+
+    function setNextLoop(){
+        setTimeout(function(){
+            var pointerCollection = db.collection('MapReducePointers');
+            var startPoint;
+
+            pointerCollection.find({Process:'BestItem'}).limit(1).toArray(function(err, docs) {
+                if  (err){return console.dir(err);}
+
+                if(docs.length){
+                    console.log("Map reduce previously run. Incrementing ...");
+                    startPoint = docs[0]['Location'];
+                    console.log("Picking up where we stopped at item " + startPoint);
+                }
+                else{
+                    db.collection('BestItemPerMinute').drop();
+                    console.log("Never Run before, Starting The DB fresh");
+                    startPoint = 0;
+                }
+
+                pointerCollection.insert({Process:'BestItem',KillsToOdds:startPoint},function(err,result){
+                    if  (err){return console.dir(err);}
+
+                    db.collection('totalKillCollection').find().sort({_id:-1}).limit(1).toArray(function(err, lastItem) {
+                        if  (err){return console.dir(err);}
+
+                        var LastItemAdded = lastItem[0]['_id'];
+
+                        console.log("Looking for items between " + startPoint + " and " + LastItemAdded);
+
+                        var startPointObject = new ObjectId(startPoint);
+                        var LastItemAddedObject = new ObjectId(LastItemAdded)
+                         //query = {_id:{$gt:startPointObject}};
+                        query = { $and: [{ _id: {$gt:startPointObject}},{_id:{$lte:LastItemAddedObject}}]};
+
+                        console.log("Map reduce Started");
+                        db.collection('totalKillCollection').mapReduce(mapFunction,reduceFunction,{out:{reduce:'BestItemPerMinute'},query:query,finalize:finalize,verbose:true},function(err,collection,stats){//finalize:finalize
+                            if(err){return console.dir(err);}
+                            console.log("Map-Reduce completed")
+                            console.log(stats)
+                            db.collection('MapReducePointers').findOneAndUpdate({Process:'BestItem'},{Process:'BestItem', Location:LastItemAdded},function(err,db){
+                                if  (err){return console.dir(err);}
+                                console.log("Updated Pointer of incremental map reduce to " + LastItemAdded)
+                                setNextLoop()
+                            });
+                        });
+                    });
+                });
+            });
+        },3000);
+    }
+
+    setNextLoop();
+
+
 
 });
