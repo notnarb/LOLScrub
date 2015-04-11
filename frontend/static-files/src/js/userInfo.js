@@ -37,7 +37,7 @@ module.exports.init = function () {
  */
 function storeName (name, info) {
 	storedInfo = {
-		name: name,
+		name: info.name,
 		info: info
 	};
 	localStorage.user = JSON.stringify(storedInfo);

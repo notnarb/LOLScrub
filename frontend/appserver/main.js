@@ -66,7 +66,7 @@ function lookupSummonerInfo (summonerName) {
 		// 	throw new UnknownServerError();
 		// }
 		if (responseBody.invalidName) {
-			redisClient.hset("nameMap", responseBody);
+			redisClient.hset("nameMap", summonerName, JSON.stringify(responseBody));
 			throw new UnknownSummonerError(summonerName);
 		} 
 		if (responseBody.results) {
@@ -86,16 +86,19 @@ function getSummonerInfo (summonerName) {
 	return redisClient.hgetAsync("nameMap", summonerName)
 		.then(function (result) {
 			if (result) {
-				console.log('redis hit', summonerName);
-				if (result.invalidName) {
+				console.dir(result);
+				console.log('redis hit', summonerName, result);
+				var parsedResult = JSON.parse(result);
+				if (parsedResult.invalidName) {
 					throw new UnknownSummonerError(summonerName);
 				}
-				return result;
+				return parsedResult;
 			} else {
 				console.log('redis miss', summonerName);
 				return lookupSummonerInfo(summonerName).then(function (info) {
 					// store id for future use
-					redisClient.hset("nameMap", summonerName, info);
+					console.log(info);
+					redisClient.hset("nameMap", summonerName, JSON.stringify(info));
 					return info;
 				});
 			}
