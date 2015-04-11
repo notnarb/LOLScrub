@@ -60,8 +60,6 @@ mongodb.connect ('mongodb://mongo:27017/urfday',function(err,db){
                     startPoint = 0;
                 }
 
-                pointerCollection.insert({Process:'KillsToOdds',KillsToOdds:startPoint},function(err,result){
-                    if  (err){return console.dir(err);}
 
                     db.collection('totalKillCollection').find().sort({_id:-1}).limit(1).toArray(function(err, lastItem) {
                         if  (err){return console.dir(err);}
@@ -80,14 +78,14 @@ mongodb.connect ('mongodb://mongo:27017/urfday',function(err,db){
                             if(err){return console.dir(err);}
                             console.log("Map-Reduce completed")
                             console.log(stats)
-                            db.collection('MapReducePointers').findOneAndUpdate({Process:'KillsToOdds'},{Process:'KillsToOdds', Location:LastItemAdded},function(err,db){
+                            pointerCollection.findOneAndReplace({Process:'KillsToOdds'},{Process:'KillsToOdds', Location:LastItemAdded},{upsert:true},function(err,db){
                                 if  (err){return console.dir(err);}
                                 console.log("Updated Pointer of incremental map reduce to " + LastItemAdded)
                                 setNextLoop()
                             });
                         });
                     });
-                });
+
             });
         },300000);
     }
