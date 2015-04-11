@@ -53,7 +53,7 @@ webserver:
   links:
     - urf2015db:mongo
   ports:
-    - "8000:8000"
+    - "8001:8000"
 staticgetter:
   build: staticGetter/
   links:

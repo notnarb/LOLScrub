@@ -20,6 +20,7 @@ var db = null;
 var app = express();
 
 var champDbReady = false;
+var itemDbReady = false;
 
 function RiotApiError (message, code) {
 	Error.call(this);
@@ -68,6 +69,27 @@ app.get('/champlist', function (req, res, next) {
 		docs.forEach(function (champData) {
 			delete champData._id; //frontend doesn't care about mongo ID
 			retval[champData.id] = champData;
+		});
+		res.writeHead(200, {'Content-Type': 'application/json'});
+		res.end(JSON.stringify(retval));
+	}).catch(function (error) {
+		res.writeHead(500, {'Content-Type': 'application/json'});
+		res.end(JSON.stringify({error: error}));
+	});
+});
+
+app.get('/itemlist', function (req, res, next) {
+	if (!itemDbReady) {
+		// service unavailable
+		res.writeHead(503, {'Content-Type': 'application/json'});
+		res.end(JSON.stringify({error: 'Item database not loaded'}));
+		return;
+	}
+	db.collection('lolStaticData').find({'dataType':'item'}).toArrayAsync().then(function (docs) {
+		var retval = {};
+		docs.forEach(function (itemData) {
+			delete itemData._id; //frontend doesn't care about mongo ID
+			retval[itemData.id] = itemData;
 		});
 		res.writeHead(200, {'Content-Type': 'application/json'});
 		res.end(JSON.stringify(retval));
@@ -140,7 +162,7 @@ function checkChampCollection () {
 		if (size < 124) {
 			if (size > 0) {
 				// champ data didn't get saved properly, clear database
-				db.collection('lolStaticData').findAndRemoveAsync({'dataType':'champion'})
+				return db.collection('lolStaticData').findAndRemoveAsync({'dataType':'champion'})
 					.then(getChampData)
 					.then(saveChampData);
 			} else {
@@ -151,6 +173,76 @@ function checkChampCollection () {
 		return true;
 	});
 }
+
+/**
+ * Given a json blob from the api, create a list of items and insert them all
+ * into the database
+ */
+function saveItemData (jsonBlob) {
+	var version = jsonBlob.version;
+	console.log('saving item data for version ', version);
+	var promiseList = [];
+	Object.keys(jsonBlob.data).forEach(function (itemName) {
+		var itemData = jsonBlob.data[itemName];
+		itemData.dataType = 'item';
+		itemData.spriteUrl = [
+			"ddragon.leagueoflegends.com/cdn/",
+			version,
+			"/img/item/",
+			itemData.image.full //note: the 'full' image name is meant for
+								 //their full splash art, it just happens to
+								 //coincide with the sprite name too
+		].join("");
+		function insert () {
+			return db.collection('lolStaticData').insertAsync(itemData);
+		}
+		// Attempt to insert the champ data.  If it fails, retry once
+		promiseList.push(insert().catch(function (error) {
+			return insert();
+		}));
+	});
+	// resolve once all of the inserts have completed
+	return Promise.all(promiseList);
+}
+
+/**
+ * Queries the riot api for the blob of json containing item info
+ * @returns {Promise} resolves with full repsonse body
+ */
+function getItemData () {
+	console.log('looking up item data');
+	var requestUrl = 'http://riotambassador:8000/api/lol/static-data/na/v1.2/item?itemListData=depth,from,gold,groups,image,into';
+	return request.getAsync(requestUrl, {json:true}).then(function (args) {
+		var response = args[0];
+		var body = args[1];
+		if (body.status && body.status.status_code) {
+			riotErrorHandler(body.status.status_code);
+		}
+		return body;
+	});
+}
+
+
+function checkItemCollection () {
+	return db.collection('lolStaticData').find({'dataType':'item'}).countAsync().then(function (size) {
+		if (size < 239) {		//TODO: if I update which version I use and
+								//there is less than 239 items... eesh....
+								//Gotta find a better way to verify
+
+			if (size > 0) {
+				// champ data didn't get saved properly, clear database
+				return db.collection('lolStaticData').findAndRemoveAsync({'dataType':'item'})
+					.then(getItemData)
+					.then(saveItemData);
+			} else {
+				return getItemData().then(saveItemData);
+			}
+		}
+		// num items is valid, continue
+		return true;
+	});
+}
+// https://global.api.pvp.net/api/lol/static-data/na/v1.2/item?itemListData=depth,from,gold,groups,image,into
 
 
 function init () {
@@ -173,6 +265,13 @@ function init () {
 						
 		});
 
+		checkItemCollection().then(function () {
+			console.log('item collection up to date');
+			itemDbReady = true;
+		}).catch(function (error) {
+			console.log('failed to get item data, exiting', error, error.stack);
+			process.exit(2);
+		});
 	});
 }
 
