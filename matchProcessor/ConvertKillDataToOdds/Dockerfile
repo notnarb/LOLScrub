@@ -14,4 +14,4 @@ WORKDIR /ConvertKillDataToOdds
 Add . /ConvertKillDataToOdds
 
 
-CMD python /ConvertKillDataToOdds/OutputOdds.py
+CMD python -u /ConvertKillDataToOdds/OutputOdds.py

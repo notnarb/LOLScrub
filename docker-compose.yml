@@ -32,6 +32,10 @@ killcollector:
   build: matchProcessor/ProcessMatchesIntoKillCollection/
   links:
     - urf2015db:mongo
+oddscollector:
+  build: matchProcessor/GetMatchupOdds/
+  links:
+    - urf2015db:mongo
 oddscalculator:
   build: matchProcessor/ConvertKillDataToOdds/
   links:

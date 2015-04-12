@@ -83,8 +83,12 @@ var mapFunction = function(){
 };
 
 var reduceFunction = function (key, resultsList){
-    var retval = {};
+
+   var retval = {};
     resultsList.forEach(function (itemBuildMap){
+        if(itemBuildMap == 'MostEffectiveItems' || itemBuildMap == 'ChampId' || itemBuildMap  =='MinuteMark'|| itemBuildMap  =='Lead'|| itemBuildMap  =='VictimId'){
+            return;
+        }
     // go through each type of build within the build
         Object.keys(itemBuildMap).forEach(function (Item){
             //if retval doesn't container it already, intitialize it;
@@ -97,21 +101,37 @@ var reduceFunction = function (key, resultsList){
             retval[Item]['Net'] += itemBuildMap[Item]['Net'];
         });
     });
-    return retval
+    return retval;
 }
 
-var finalize = function (key,value){
+var finalize = function (key,ReducedValue){
     var res=key.split("-");
     var sortable = [];
-    retval = {"ChampId":res[0],"VictimId":res[1],"MinuteMark":res[2],"Lead":res[3]};
-    for(var build in value){
-        retval[build] = value[build];
-        sortable.push([build,value[build]]);
+
+    ReducedValue['ChampId']=res[0];
+    ReducedValue['VictimId']=res[1];
+    ReducedValue['MinuteMark']=res[2];
+    ReducedValue['Lead']=res[3];
+
+   for(var build in ReducedValue){
+        if(build == 'MostEffectiveItems' || build == 'ChampId' || build  =='MinuteMark'|| build  =='Lead'|| build  =='VictimId'){
+            continue;
+        }
+        sortable.push({'build':build,'Gross':ReducedValue[build]['Gross'],'Net':ReducedValue[build]['Net']});
 
     }
-    sortable.sort(function(a,b){return b[1] - a[1]});
-    retval["MostPopularItems"]= sortable.slice(0,6);
-    return(retval);//"MostPopularBuild":sortable[0]});
+
+    if(res[3] == "Behind"){
+        sortable.sort(function(a,b){return b.Gross - a.Gross});
+        popularItems = sortable.slice(0,10)
+        popularItems.sort(function(a,b){return b.Net - a.Net});
+        ReducedValue['MostEffectiveItems']= popularItems.slice(0,6);
+    }
+    else{
+        sortable.sort(function(a,b){return b.Net - a.Net});
+        ReducedValue['MostEffectiveItems']= sortable.slice(0,6);
+    }
+    return(ReducedValue);//"MostPopularBuild":sortable[0]});
 
 }
 

@@ -24,7 +24,7 @@ def computeSoloKillOddsFromRawData():
     OutputCollection.drop()
     #Timeline = numpy.array([-1]*50);
     MapChampOdds = []
-    print(str(len(champIDs)))
+    #print(str(len(champIDs)))
     for x in range(0,len(champIDs)):
 
         Champions = []
@@ -44,13 +44,14 @@ def computeSoloKillOddsFromRawData():
         VictimId  = int(KillData['value']['VictimChampId'])
         MinuteMark  = int(KillData['value']['MinuteMark'])
         Count  = KillData['value']['count']
-
+        if(MinuteMark > 49):
+            continue
         #print(str(KillerId))
 
         KillerIdIndex = champIDs.index(KillerId)
         VictimIdIndex = champIDs.index(VictimId)
 
-       # print("KillerIdIndex is " + str(KillerIdIndex) + " VictimIdIndex is " + str(VictimIdIndex) + " Minute is " + str(MinuteMark))
+        #print("KillerIdIndex is " + str(KillerIdIndex) + " VictimIdIndex is " + str(VictimIdIndex) + " Minute is " + str(MinuteMark))
         #print(MapChampOdds[KillerIdIndex][VictimIdIndex]);
         #print(" sizeof Mapchampodds is " + str(len(MapChampOdds)) + " sizeof Mapchampodds[killerID] is " + str(len(MapChampOdds[KillerIdIndex])) + " sizeof Mapchampodds[killer][victim] is " + str(len(MapChampOdds[KillerIdIndex][VictimIdIndex])) )
         MapChampOdds[KillerIdIndex][VictimIdIndex][MinuteMark] = Count
@@ -121,11 +122,18 @@ def SmoothArray(SumKillVals):
         SmoothedKillVals[i] = SmoothedKillVals[i] * 0.8 + 0.2 * sum/50
     return SmoothedKillVals;
 
+def daemon():
+    while True:
+        print("Processing Database")
+        time.sleep(1)
+        computeSoloKillOddsFromRawData()
+        print("Sleeping")
+        time.sleep(1200)
+    return;
 
 
 print("Processing Database - process.py")
-computeSoloKillOddsFromRawData()
-
+daemon();
 
 #setupPentaDB()
 

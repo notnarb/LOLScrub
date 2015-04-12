@@ -71,19 +71,24 @@ var reduceFunction = function (key, resultsList){
     return retval;
 };
 
-function finalize (key,value){
+function finalize (key,reducedValue){
     var res=key.split("-");
-    var retval = {"ChampId":res[0],"MinuteMark":res[1]};
-    var sortable = [];
-    for(var build in value){
-        retval[build] = value[build];
-        sortable.push([build,value[build]]);
+    reducedValue['ChampId']=res[0];
+    reducedValue['MinuteMark']=res[1];
+    var currentLargest = {'build':"", 'value':0};
+    Object.keys(reducedValue).forEach(function(build){
+        if(build == 'TopBuild' || build == 'ChampId' || build  =='MinuteMark'){
+            return;
+        }
+        if(reducedValue[build] > currentLargest.value){
+            currentLargest.build = build;
+            currentLargest.value = reducedValue[build];
+        }
+    });
 
-    }
-    sortable.sort(function(a,b){return b[1] - a[1]});
-    retval['TopBuild'] = sortable[0];
+    reducedValue['TopBuild'] = currentLargest;
 
-    return(retval);
+    return(reducedValue);
 
 }
 
