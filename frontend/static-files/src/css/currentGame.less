@@ -1,7 +1,7 @@
 @import "mixins";
 @import "colors";
 
-#currentGame {
+#currentGame.inGame {
 	.Flex();
 	.team {
 		// can grow, can't shrink
@@ -49,11 +49,56 @@
 		.bottom {
 			.FlexChild();
 			margin-top: 8px;
+			overflow: hidden;
+			height: 56px;
+			position: relative;
+			.chartContainer {
+				// Create a container for the chart that will cut off the left
+				// 10 pixels and the bottom 4 pixels while still allowing it to
+				// grow and shrink
+				position: absolute;
+				left: -10px;
+				right: 0px;
+				top: 0px;
+				bottom: -4px;
+			}
 			.chart {
-				height: 56px;
-				width: 100%;
-				border: 1px solid;
+				height: 100% !important;
 			}
 		}
 	}
+}
+
+#currentGame.notInGame {
+	.Flex(center, row, stretch, center);
+	.msgbox {
+		margin-top: 80px;
+		// can grow, can't shrink
+		.FlexChild(0, 1, 0);
+		max-width :480px;
+		background-color: @grey200;
+		padding: 16px;
+		box-sizing: border-box;
+		border-radius: 4px;
+		border: 1px solid @grey500;
+		.message {
+
+		}
+		.buttonRow {
+			margin-top: 16px;
+			.Flex(space-around);
+			.button {
+				// can grow, can't shrink, base size of buttons: 48px
+				.FlexChild(0, 1, 0, 48px);
+				margin: 0px 8px;
+				&.checkNow {
+					background-color: @green500;
+				}
+				&.simulateGame {
+					background-color: white;
+				}
+			}
+		}
+	}
+	
 }

@@ -1,0 +1,17 @@
+<div id="currentGame" class="notInGame">
+  <div class="msgbox">
+    <div class="message">{{msg}}</div>
+    <div class="buttonRow">
+      {{#if loggedIn}}
+        {{#if isChecking}}
+          <div class="button raised disabled checkNow">{{checkButtonText}}</div>
+        {{else}}
+          <div class="button raised checkNow" data-action="checkForGame">{{checkButtonText}}</div>
+        {{/if}}
+      {{else}}
+        <div class="button disabled checkNow" data-action="checkForGame" title="You must enter a summoner name to check for a game">{{checkButtonText}}</div>
+      {{/if}}
+      <div class="button raised simulateGame" data-action="simulateGame">Simulate game</div>
+    </div>
+  </div>
+</div>

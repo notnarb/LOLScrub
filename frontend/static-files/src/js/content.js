@@ -1,7 +1,7 @@
 /**
  * Controller for the main content container
  */
-var currentGameTemplate = require('../tmpl/currentGame.hbs');
+var currentGame = require('./currentGame');
 var aboutPageTemplate = require('../tmpl/about.hbs');
 // Main content container
 var content;
@@ -26,7 +26,6 @@ module.exports.aboutScreen = function () {
  * Load the current game screen
  */
 module.exports.currentGame = function () {
-	var myTeam = [1,2,3,4,5];
-	content.html(currentGameTemplate({myTeam: myTeam}));
+	content.html(currentGame.render());
 };
 

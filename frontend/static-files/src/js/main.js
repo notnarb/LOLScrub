@@ -3,6 +3,8 @@
 window.Promise = undefined;
 var Promise = require('bluebird');
 var containerTemplate = require('../tmpl/container.hbs');
+// because it needs to get included at some point
+var handlebarsHelpers = require('./handlebarsHelpers.js');
 
 // window.onLoad
 $(function () {
@@ -29,5 +31,6 @@ $(function () {
 	containerContent.find('#content').replaceWith(content.render());
 	
 	container.replaceWith(containerContent);
+
 });
 

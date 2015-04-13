@@ -119,6 +119,29 @@ app.get('/getmyinfo/:summonerName', function (req, res, next) {
 	});
 });
 
+/**
+ * Serve static data that I should really be feeding into the html file....
+ */ 
+app.get('/getstatic', function (req, res) {
+	var response;
+	if (!champMap || !itemMap) {
+		res.writeHead(503, {'Content-Type': 'application/json'});
+		response = {
+			error: "champMap or itemMap not loaded",
+			champMapLoaded: !!champMap,
+			itemMapLoaded: !!itemMap
+		};
+		res.end(JSON.stringify(response));
+		return;
+	}
+	response = {
+		itemMap: itemMap,
+		champMap: champMap
+	};
+	res.writeHead(200, {'Content-Type': 'application/json'});
+	res.end(JSON.stringify(response));
+});
+
 
 /**
  * Handler for requests which fall through all other requests
@@ -130,6 +153,57 @@ app.use(function baseHandler (req, res) {
 
 });
 
+var itemMap = null;
+
+/**
+ * Eventually populates itemMap with the static item data from the backend
+ */
+function getItemData () {
+	request.getAsync('/itemlist').then(function (results) {
+		var response = results[0];
+		var responseBody = results[1];
+		if (response.statusCode === 200 && Object.keys(responseBody)) {
+			// assume item data was found
+			Object.keys(responseBody).forEach(function (itemId) {
+				// delete all data not used by front end currently since this is passed as-is to the client
+				delete responseBody[itemId].plainText;
+				delete responseBody[itemId].description;
+				delete responseBody[itemId].image;
+			});
+			itemMap = responseBody;
+		} else {
+			throw new Error("Invalid status code (" + response.statusCode + ") or body " + JSON.stringify(responseBody) + 'when looking up items');
+		}
+	}).catch(function (error) {
+		console.log("Failed to get itemlist", error, "trying again in 10 seconds");
+		setTimeout(getItemData, 10000);
+	});
+}
+
+var champMap = null;
+/**
+ * Eventually populates champMap with the static item data from the backend
+ */
+function getChampData () {
+	request.getAsync('/champlist').then(function (results) {
+		var response = results[0];
+		var responseBody = results[1];
+		if (response.statusCode === 200 && Object.keys(responseBody)) {
+			// assume champ data was found
+			Object.keys(responseBody).forEach(function (champId) {
+				// Delete data not used by front end js
+				delete responseBody[champId].image;
+				delete responseBody[champId].title;
+			});
+			champMap = responseBody;
+		} else {
+			throw new Error("Invalid status code (" + response.statusCode + ") or body " + JSON.stringify(responseBody) + 'when looking up items');
+		}
+	}).catch(function (error) {
+		console.log("Failed to get champlist", error, "trying again in 10 seconds");
+		setTimeout(getChampData, 10000);
+	});
+}
 
 function ErrorHandler (err, req, res, next) {
 	var errorCode = 500;
@@ -146,6 +220,8 @@ http.createServer(app).listen(HTTP_PORT);
 
 console.log('listening on port', HTTP_PORT);
 
+getItemData();
+getChampData();
 
 
 // TODO: these should probably get moved to their own module

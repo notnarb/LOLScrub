@@ -66,6 +66,7 @@ module.exports.setName = function (name) {
 	return helpers.get('/app/getmyinfo/' + name)
 		.then(function (data) {
 			storeName(name, data);
+			module.exports.ee.emit('update');
 		});
 };
 
@@ -77,4 +78,5 @@ module.exports.forgetInfo = function () {
 	if (localStorage) {
 		delete localStorage.user;
 	}
+	module.exports.ee.emit('update');
 };

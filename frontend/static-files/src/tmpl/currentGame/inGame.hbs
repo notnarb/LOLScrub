@@ -1,0 +1,53 @@
+<div id="currentGame" class="inGame">
+  <div class="my team">
+      {{#each myTeam}}
+        <div class="champCard">
+          <div class="top">
+            <div class="champPic" title="{{champName champId}}">
+              <img src="{{champSprite champId}}"/>
+            </div>
+            <div class="stats">
+              <div class="name">{{name}}</div>
+              <div class="currentOdds">{{updatingOdds 1 champId 100}}%</div>
+              <div class="itemSuggestions">
+                <div class="item"></div>
+                <div class="item"></div>
+                <div class="item"></div>
+              </div>
+            </div>
+          </div>
+          <div class="bottom">
+            <div class="chartContainer">
+              <canvas class="chart" height="60px" data-chart-ks-odds data-my-champ="{{champId}}" data-their-champ="{{champId}}"></canvas> {{!TODO: global pointer to my champ}}
+            </div>
+          </div>
+        </div>
+      {{/each}}
+    </div>
+    <div class="teamSeparator"></div>
+    <div class="enemy team ">{{!ooooo how I hate them}}
+      {{#each enemyTeam}}
+        <div class="champCard">
+          <div class="top">
+            <div class="champPic" title="{{champName champId}}">
+              <img src="{{champSprite champId}}"/>
+            </div>
+            <div class="stats">
+              <div class="name">{{name}}</div>
+              <div class="currentOdds">{{updatingOdds 1 champId 100}}%</div>
+              <div class="itemSuggestions">
+                <div class="item"></div>
+                <div class="item"></div>
+                <div class="item"></div>
+              </div>
+            </div>
+          </div>
+          <div class="bottom">
+            <div class="chartContainer">
+              <canvas class="chart" height="60px" data-chart-odds data-my-champ="{{champId}}" data-their-champ="{{champId}}"></canvas> {{!TODO: global pointer to my champ}}
+            </div>
+          </div>
+        </div>
+      {{/each}}
+    </div>
+</div>
