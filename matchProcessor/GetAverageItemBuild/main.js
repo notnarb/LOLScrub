@@ -140,13 +140,13 @@ mongodb.connect ('mongodb://mongo:27017/urfday',function(err,db){
                             pointerCollection.findOneAndReplace({Process:'AvgItemBuild'},{Process:'AvgItemBuild', Location:LastItemAdded},{upsert:true},function(err,db){
                                 if  (err){return console.dir(err);}
                                 console.log("Updated Pointer of incremental map reduce to " + LastItemAdded)
-                                setNextLoop()
+                                //setNextLoop()
                             });
                         });
                     });
 
             });
-        },300000);
+        },3000);
     }
 
     setNextLoop();

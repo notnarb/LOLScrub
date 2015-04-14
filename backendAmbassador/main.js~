@@ -25,23 +25,23 @@ app.get('/itemlist', function (req, res) {
 	console.log('itemlist');
 	proxy.web(req, res, {target: 'http://staticgetter:8000'});
 });
-app.get('/summonerlookup', function (req, res) {
+app.get('/summonerlookup/**', function (req, res) {
 	console.log('summonerlookup');
 	proxy.web(req, res, {target: 'http://summonerlookup:8000'});
 });
-app.get('/matchlookup', function (req, res) {
+app.get('/matchlookup/**', function (req, res) {
 	console.log('matchlookup');
 	proxy.web(req, res, {target: 'http://summonerlookup:8000'});
 });
-app.get('/SoloKillOddsAgainstLead', function (req, res) {
+app.get('/SoloKillOddsAgainstLead/**', function (req, res) {
 	console.log('Solo kill odds vs specific enemy with Gold lead info over time');
 	proxy.web(req, res, {target: 'http://webserver:8000'});
 });
-app.get('/SoloKillOddsAgainstOverall', function (req, res) {
+app.get('/SoloKillOddsAgainstOverall/**', function (req, res) {
 	console.log('Overall Solo Kill odds vs specific enemy over time');
 	proxy.web(req, res, {target: 'http://webserver:8000'});
 });
-app.get('/Multikills', function (req, res) {
+app.get('/Multikills/**', function (req, res) {
 	console.log('Rate per game of multikills (Data * 10000) ');
 	proxy.web(req, res, {target: 'http://webserver:8000'});
 });
@@ -51,22 +51,22 @@ app.get('/SnowballValue/**', function (req, res) {
 	proxy.web(req, res, {target: 'http://webserver:8000'});
 });
 
-app.get('/OverallKSRate', function (req, res) {
+app.get('/OverallKSRate/**', function (req, res) {
 	console.log('Single number representing Champ KS rate');
 	proxy.web(req, res, {target: 'http://webserver:8000'});
 });
 
-app.get('/SoloKillOddsOverall', function (req, res) {
+app.get('/SoloKillOddsOverall/**', function (req, res) {
 	console.log('Champions overall chance to win 1v1 over time');
 	proxy.web(req, res, {target: 'http://webserver:8000'});
 });
 
-app.get('/KSOddsOverall', function (req, res) {
+app.get('/KSOddsOverall/**', function (req, res) {
 	console.log('Champions KS rate over time');
 	proxy.web(req, res, {target: 'http://webserver:8000'});
 });
 
-app.get('/OverallSoloKillRate', function (req, res) {
+app.get('/OverallSoloKillRate/**', function (req, res) {
 	console.log('Single number representing champ 1v1 rate in all situations');
 	proxy.web(req, res, {target: 'http://webserver:8000'});
 });

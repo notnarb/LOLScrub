@@ -33,16 +33,26 @@ def computeSoloKillOddsFromRawData():
             Enemies = []
             MapChampOdds[x].append( Enemies)
             #Timeline = numpy.array([0]*50)
-            for z in range(0,50):
-                MapChampOdds[x][y].append(0)
+            for z in range (0,4):
+                Lead = []
+                MapChampOdds[x][y].append(Lead)
+                for t in range(0,50):
+                    MapChampOdds[x][y][z].append(0)
             
     KillCursor = rawDataCollection.find()
     i = 0
-    for x in range (0,rawDataCollection.count()):
-        KillData = KillCursor[x]
+    while KillCursor.alive:
+        try:
+            KillData = KillCursor.next()
+        except StopIteration:
+            #print("Nothing else to be done, sleeping")
+            time.sleep(1);
+            continue;
+        #KillData = KillCursor[x]
         KillerId  = int(KillData['value']['KillerChampId'])
         VictimId  = int(KillData['value']['VictimChampId'])
         MinuteMark  = int(KillData['value']['MinuteMark'])
+        LeadString = KillData['value']['Lead']
         Count  = KillData['value']['count']
         if(MinuteMark > 49):
             continue
@@ -50,52 +60,83 @@ def computeSoloKillOddsFromRawData():
 
         KillerIdIndex = champIDs.index(KillerId)
         VictimIdIndex = champIDs.index(VictimId)
+        Lead = -1;
+        if(LeadString == "Ahead"):
+            Lead = 0;
+        elif(LeadString =="Equal"):
+            Lead = 1;
+        elif(LeadString =="Behind"):
+            Lead = 2;
+        else:
+            Lead = 3
 
         #print("KillerIdIndex is " + str(KillerIdIndex) + " VictimIdIndex is " + str(VictimIdIndex) + " Minute is " + str(MinuteMark))
         #print(MapChampOdds[KillerIdIndex][VictimIdIndex]);
         #print(" sizeof Mapchampodds is " + str(len(MapChampOdds)) + " sizeof Mapchampodds[killerID] is " + str(len(MapChampOdds[KillerIdIndex])) + " sizeof Mapchampodds[killer][victim] is " + str(len(MapChampOdds[KillerIdIndex][VictimIdIndex])) )
-        MapChampOdds[KillerIdIndex][VictimIdIndex][MinuteMark] = Count
+        MapChampOdds[KillerIdIndex][VictimIdIndex][Lead][MinuteMark] = Count
         i = i +1
     print("Added Kill data for " + str(i) + " datapoints")
     for x in range(0,len(champIDs)):
         for y in range(x,len(champIDs)):
-            #
-            itemToAddX = {'KillerId':champIDs[x],'VictimId':champIDs[y]}
-            itemToAddY = {'KillerId':champIDs[y],'VictimId':champIDs[x]}
-            #
-
-            SmoothArrayChampX = SmoothArray(MapChampOdds[x][y]);
-            SmoothArrayChampY = SmoothArray(MapChampOdds[y][x]);
-
-            timestampsX = {}
-            timestampsY = {}
-
-            for i in range (0,50):
-                if((SmoothArrayChampX[i] + SmoothArrayChampY[i]) == 0):
-                    sumX = numpy.sum(SmoothArrayChampX)
-                    sumY = numpy.sum(SmoothArrayChampY)
-                    if(sumX == 0 or sumY == 0):
-                        timestampsX[str(i)] = .50
-                        timestampsY[str(i)] = .50
-                    else:
-                        timestampsX[str(i)] = sumX / (sumX + sumY)
-                        timestampsY[str(i)] = sumY / (sumX + sumY)
-
+            for z in range(0,4):
+                #
+                Xlead= -1;
+                Ylead = -1;
+                Yz = -1;
+                if(z == 0):
+                    Xlead = "Ahead"
+                    Ylead = "Behind"
+                    Yz = 2;
+                elif(z == 2):
+                    Ylead = "Ahead"
+                    Xlead = "Behind"
+                    Yz = 0;
+                elif(z==1):
+                    Ylead = Xlead = "Equal"
+                    Yz = 1
                 else:
-                    timestampsX[str(i)] = SmoothArrayChampX[i]/(SmoothArrayChampX[i] + SmoothArrayChampY[i])
-                    timestampsY[str(i)] = SmoothArrayChampY[i]/(SmoothArrayChampX[i] + SmoothArrayChampY[i])
+                    Ylead=Xlead = "Overall"
+                    Yz = 3;
 
-            itemToAddX['Minute'] = timestampsX
-            itemToAddY['Minute'] = timestampsY
+                itemToAddX = {'KillerId':champIDs[x],'VictimId':champIDs[y],'Lead':Xlead}
+                itemToAddY = {'KillerId':champIDs[y],'VictimId':champIDs[x],'Lead':Ylead}
+                #
 
-            #print(itemToAddX)
-            #print(itemToAddY)
-           # if (output):
-                #print(SumKillVals)
-                #print(SmoothedKillVals)
-                #print(itemToAdd)
-            OutputCollection.insert(itemToAddX)
-            OutputCollection.insert(itemToAddY)
+                SmoothArrayChampX = SmoothArray(MapChampOdds[x][y][z]);
+                SmoothArrayChampY = SmoothArray(MapChampOdds[y][x][Yz]);
+
+                timestampsX = {}
+                timestampsY = {}
+
+                for i in range (0,50):
+                    if((SmoothArrayChampX[i] + SmoothArrayChampY[i]) == 0):
+                        sumX = numpy.sum(SmoothArrayChampX)
+                        sumY = numpy.sum(SmoothArrayChampY)
+                        if(sumX == 0 and sumY == 0):
+                            timestampsX[str(i)] = .50
+                            timestampsY[str(i)] = .50
+                        else:
+                            timestampsX[str(i)] = sumX / (sumX + sumY)
+                            timestampsY[str(i)] = sumY / (sumX + sumY)
+
+                    else:
+                        timestampsX[str(i)] = SmoothArrayChampX[i]/(SmoothArrayChampX[i] + SmoothArrayChampY[i])
+                        timestampsY[str(i)] = SmoothArrayChampY[i]/(SmoothArrayChampX[i] + SmoothArrayChampY[i])
+                    timestampsX[str(i)] = round(100* timestampsX[str(i)]);
+                    timestampsY[str(i)] = round(100* timestampsY[str(i)]);
+
+                itemToAddX['Minute'] = timestampsX
+                itemToAddY['Minute'] = timestampsY
+
+                #print(itemToAddX)
+                #print(itemToAddY)
+               # if (output):
+                    #print(SumKillVals)
+                    #print(SmoothedKillVals)
+                    #print(itemToAdd)
+                if(x != y):
+                    OutputCollection.insert(itemToAddY)
+                OutputCollection.insert(itemToAddX)
     print(OutputCollection.count())
 
 
@@ -107,11 +148,16 @@ def SmoothArray(SumKillVals):
     timestamps = {}
     sum = numpy.sum(SumKillVals)
     for i in range (0,50):
-        if (i < 3):
-            SmoothedKillVals[i] = 0.333*SumKillVals[0] + 0.333*SumKillVals[1] + 0.333*SumKillVals[2]
+        if(i == 0):
+            SmoothedKillVals[i] = 0.60*SumKillVals[0] + 0.30*SumKillVals[1] + 0.1*SumKillVals[2]
+        if (i <= 1):
+            SmoothedKillVals[i] = 0.20*SumKillVals[0] + 0.60*SumKillVals[1] + 0.2*SumKillVals[2]
+
+        if (i == 2):
+            SmoothedKillVals[i] = 0.05*SumKillVals[0] + 0.20*SumKillVals[1] + 0.5*SumKillVals[2] + 0.20*SumKillVals[3] + 0.05*SumKillVals[4]
 
         elif (i == 3):
-            SmoothedKillVals[i] = 0.05*SumKillVals[0] + 0.10*SumKillVals[1] + 0.20*SumKillVals[2] + 0.30*SumKillVals[3] + 0.20*SumKillVals[4]+ 0.10*SumKillVals[5] + 0.05*SumKillVals[6]
+            SmoothedKillVals[i] = 0.05*SumKillVals[0] + 0.10*SumKillVals[1] + 0.15*SumKillVals[2] + 0.40*SumKillVals[3] + 0.15*SumKillVals[4]+ 0.10*SumKillVals[5] + 0.05*SumKillVals[6]
 
         elif(i > 45):
             SmoothedKillVals[i] = sum/50
@@ -119,7 +165,8 @@ def SmoothArray(SumKillVals):
         else:
             SmoothedKillVals[i] = 0.04*SumKillVals[i-4] + 0.08*SumKillVals[i-3] + 0.12*SumKillVals[i-2] + 0.16*SumKillVals[i-1] + 0.20*SumKillVals[i]+ 0.16*SumKillVals[i+1] + 0.12*SumKillVals[i+2] + 0.08*SumKillVals[i+3] + 0.04*SumKillVals[i+4];
 
-        SmoothedKillVals[i] = SmoothedKillVals[i] * 0.8 + 0.2 * sum/50
+        SmoothedKillVals[i] = (SmoothedKillVals[i] * 0.8) + (0.2 * sum/50)
+
     return SmoothedKillVals;
 
 def daemon():
@@ -133,7 +180,8 @@ def daemon():
 
 
 print("Processing Database - process.py")
-daemon();
+#daemon();
+computeSoloKillOddsFromRawData()
 
 #setupPentaDB()
 
