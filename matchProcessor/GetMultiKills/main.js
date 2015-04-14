@@ -1,56 +1,47 @@
-// map reduce the kills per timestamp.
-
-/*
-var mapFunction = function(KillerChampId,VictimChampId){
-    killList = this.find({$and[{'KillerChampID':KillerChampId},{'VictimChampId':VictimChampId}]});
-    killList.forEach(function(kill){
-        emit(kill.timestamp,1)
-    });
-}*/
 
 
-
-mongodb = require('mongodb');
+var mongodb = require('mongodb');
 ObjectId = require('mongodb').ObjectID;
 
 var mapFunction = function(){
-    if(this.isSoloKill){
-        var Lead;
-        if(this.KillerGold > this.VictimGold + 1000){
-            Lead = "Ahead";
+   this.participants.forEach(function (participant) {
+        emit(participant.championId,{'pentakills': participant.stats.pentaKills,'quadrakills': participant.stats.quadraKills,'triplekills': participant.stats.tripleKills,'doublekills': participant.stats.doubleKills,numGames:1})
+   });
 
-        }
-        else if(this.KillerGold + 1000  < this.VictimGold ){
-            Lead = "Behind";
-        }
-        else{
-            Lead= "Equal";
-        }
+}
 
-        keyval =[this.KillerChampId, this.VictimChampId, this.MinuteMark,Lead].join("-")
-        emit(keyval,{'count':1})
-        emit([this.KillerChampId, this.VictimChampId, this.MinuteMark,"Overall"].join("-"),{'count':1})
+var reduceFunction = function(key, values){
+    var numPenta = 0;
+    var numQuadra = 0;
+    var numTriple = 0;
+    var numDouble = 0;
+    numGames = 0;
+    for (var i = 0; i < values.length;i++){
+        var value = values[i];
+        numPenta+=value.pentakills;
+        numQuadra+=value.quadrakills;
+        numTriple+=value.triplekills;
+        numDouble+=value.doublekills;
+        numGames+=value.numGames;
     }
-}
+    var pentaRate,quadraRate,tripleRate,doubleRate = 0
+    pentaRate = Math.round( 10000*numPenta/numGames);
+    quadraRate = Math.round( 10000*numQuadra/numGames);
+    tripleRate = Math.round( 10000*numTriple/numGames);
+    doubleRate = Math.round( 10000*numDouble/numGames);
+    return {'pentakills':numPenta,'quadrakills':numPenta,'triplekills':numTriple,'doublekills':numDouble,'pentarate':pentaRate,'quadrarate':quadraRate,'triplerate':tripleRate,'doublerate':doubleRate,numGames:numGames};
 
-var reduceFunction = function(key, value){
-    var retval = {'count':0};
-    value.forEach(function (object){
-        retval['count'] += object['count'];
 
-    });
-    return retval;
 }
-var finalize = function (key,value){
-    var res=key.split("-")
-    return({"KillerChampId":res[0],"VictimChampId":res[1],"MinuteMark":res[2],"Lead":res[3],"count":value['count']});
+function finalize (key,value){
+
 
 }
 
 var db;
-
 mongodb.connect ('mongodb://mongo:27017/urfday',function(err,db){
     if  (err){return console.dir(err);}
+
 
     //console.log("We are connected to the DB");
     //console.log(db.collection('totalKillCollection').count(function(err,count)))
@@ -61,7 +52,7 @@ mongodb.connect ('mongodb://mongo:27017/urfday',function(err,db){
             var pointerCollection = db.collection('MapReducePointers');
             var startPoint;
 
-            pointerCollection.find({Process:'KillsToOdds'}).limit(1).toArray(function(err, docs) {
+            pointerCollection.find({Process:'GetMultiKills'}).limit(1).toArray(function(err, docs) {
                 if  (err){return console.dir(err);}
 
                 if(docs.length){
@@ -70,13 +61,12 @@ mongodb.connect ('mongodb://mongo:27017/urfday',function(err,db){
                     console.log("Picking up where we stopped at item " + startPoint);
                 }
                 else{
-                    db.collection('killsPerTimeSlice').drop();
+                    db.collection('GetMultiKills').drop();
                     console.log("Never Run before, Starting The DB fresh");
                     startPoint = 0;
                 }
 
-
-                    db.collection('totalKillCollection').find().sort({_id:-1}).limit(1).toArray(function(err, lastItem) {
+                    db.collection('matches').find().sort({_id:-1}).limit(1).toArray(function(err, lastItem) {
                         if  (err){return console.dir(err);}
 
                         var LastItemAdded = lastItem[0]['_id'];
@@ -89,30 +79,22 @@ mongodb.connect ('mongodb://mongo:27017/urfday',function(err,db){
                         query = { $and: [{ _id: {$gt:startPointObject}},{_id:{$lte:LastItemAddedObject}}]};
 
                         console.log("Map reduce Started");
-                        db.collection('totalKillCollection').mapReduce(mapFunction,reduceFunction,{out:{reduce:'killsPerTimeSlice'},finalize:finalize,query:query,verbose:true},function(err,collection,stats){//finalize:finalize
+                        db.collection('matches').mapReduce(mapFunction,reduceFunction,{out:{reduce:'GetMultiKills'},query:query,verbose:true},function(err,collection,stats){//finalize:finalize
                             if(err){return console.dir(err);}
                             console.log("Map-Reduce completed")
                             console.log(stats)
-                            pointerCollection.findOneAndReplace({Process:'KillsToOdds'},{Process:'KillsToOdds', Location:LastItemAdded},{upsert:true},function(err,db){
+                            pointerCollection.findOneAndReplace({Process:'GetMultiKills'},{Process:'GetMultiKills', Location:LastItemAdded},{upsert:true},function(err,db){
                                 if  (err){return console.dir(err);}
                                 console.log("Updated Pointer of incremental map reduce to " + LastItemAdded)
                                 //setNextLoop()
                             });
                         });
                     });
-
             });
         },3000);
     }
 
     setNextLoop();
 
-
-
-
-
-    //return;
     
 });
-
-

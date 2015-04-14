@@ -6,7 +6,6 @@ ObjectId = require('mongodb').ObjectID;
 var mapFunction = function(){
         print("map test")
 		//So what if in this instance you emit("121-26", {killsSecured:1}); emit("26-121": {killsStolen: 1})
-		var KeyBase = [this.KillerChampId,this.MinuteMark].join("-");
 		//var KeyBaseStealee = [this.KillerChampId,this.MinuteMark].join("-");
 		///if (this.isSoloKill == true){
 		//    return;
@@ -14,8 +13,8 @@ var mapFunction = function(){
 		for(var Assistant in this.AssistingChamps){
 		    if(this.AssistingChamps.hasOwnProperty(Assistant)){
 		        //print(Assistant);
-		        emit([Assistant,this.KillerChampId,this.MinuteMark].join("-"),{"KillsSecured":0,"KillsStolen":1});
-			    emit([this.KillerChampId,Assistant,this.MinuteMark].join("-"),{"KillsSecured":1,"KillsStolen":0});
+		        emit([this.KillerChampId,this.MinuteMark].join("-"),{"KillsSecured":0,"KillsStolen":1});
+			    emit([parseInt(Assistant),this.MinuteMark].join("-"),{"KillsSecured":1,"KillsStolen":0});
 		    }
 		}
 
@@ -42,9 +41,8 @@ var reduceFunction = function(key, value){
     return retval;
 }
 function finalize (key,value){
-    var res=key.split("-");
     Odds = value['KillsStolen']/(value['KillsSecured']  + value['KillsStolen']);
-    return({"ChampId":res[0],"KSChampId":res[1],"MinuteMark":res[2],"KillsStolen":value['KillsStolen'],"KillsSecured":value['KillsSecured'],"Odds":Odds});
+    return({"KillsStolen":value['KillsStolen'],"KillsSecured":value['KillsSecured'],"Odds":Odds});
 
 }
 
@@ -62,7 +60,7 @@ mongodb.connect ('mongodb://mongo:27017/urfday',function(err,db){
             var pointerCollection = db.collection('MapReducePointers');
             var startPoint;
 
-            pointerCollection.find({Process:'GetKSPerChamp'}).limit(1).toArray(function(err, docs) {
+            pointerCollection.find({Process:'GetOverallKSPerChampTime'}).limit(1).toArray(function(err, docs) {
                 if  (err){return console.dir(err);}
 
                 if(docs.length){
@@ -71,7 +69,7 @@ mongodb.connect ('mongodb://mongo:27017/urfday',function(err,db){
                     console.log("Picking up where we stopped at item " + startPoint);
                 }
                 else{
-                    db.collection('KsChancePerChamp').drop();
+                    db.collection('GetOverallKSPerChampTime').drop();
                     console.log("Never Run before, Starting The DB fresh");
                     startPoint = 0;
                 }
@@ -89,11 +87,11 @@ mongodb.connect ('mongodb://mongo:27017/urfday',function(err,db){
                         query = { $and: [{ _id: {$gt:startPointObject}},{_id:{$lte:LastItemAddedObject}}]};
 
                         console.log("Map reduce Started");
-                        db.collection('totalKillCollection').mapReduce(mapFunction,reduceFunction,{out:{reduce:'KsChancePerChamp'},finalize:finalize,query:query,verbose:true},function(err,collection,stats){//finalize:finalize
+                        db.collection('totalKillCollection').mapReduce(mapFunction,reduceFunction,{out:{reduce:'GetOverallKSPerChampTime'},finalize:finalize,query:query,verbose:true},function(err,collection,stats){//finalize:finalize
                             if(err){return console.dir(err);}
                             console.log("Map-Reduce completed")
                             console.log(stats)
-                            pointerCollection.findOneAndReplace({Process:'GetKSPerChamp'},{Process:'GetKSPerChamp', Location:LastItemAdded},{upsert:true},function(err,db){
+                            pointerCollection.findOneAndReplace({Process:'GetOverallKSPerChampTime'},{Process:'GetOverallKSPerChampTime', Location:LastItemAdded},{upsert:true},function(err,db){
                                 if  (err){return console.dir(err);}
                                 console.log("Updated Pointer of incremental map reduce to " + LastItemAdded)
                                 //setNextLoop()

@@ -14,36 +14,46 @@ mongodb = require('mongodb');
 ObjectId = require('mongodb').ObjectID;
 
 var mapFunction = function(){
-    if(this.isSoloKill){
-        var Lead;
+
+    if(this.isSoloKill==true){
+
         if(this.KillerGold > this.VictimGold + 1000){
-            Lead = "Ahead";
+            emit(this.KillerChampId,{'KillsAhead':1,'DeathsAhead':0,'KillsEqual':0,'DeathsEqual':0})
 
         }
         else if(this.KillerGold + 1000  < this.VictimGold ){
-            Lead = "Behind";
+            emit(this.VictimChampId,{'KillsAhead':0,'DeathsAhead':1,'KillsEqual':0,'DeathsEqual':0})
         }
         else{
-            Lead= "Equal";
+            emit(this.VictimChampId,{'KillsAhead':0,'DeathsAhead':0,'KillsEqual':0,'DeathsEqual':1})
+            emit(this.KillerChampId,{'KillsAhead':0,'DeathsAhead':0,'KillsEqual':1,'DeathsEqual':0})
         }
-
-        keyval =[this.KillerChampId, this.VictimChampId, this.MinuteMark,Lead].join("-")
-        emit(keyval,{'count':1})
-        emit([this.KillerChampId, this.VictimChampId, this.MinuteMark,"Overall"].join("-"),{'count':1})
     }
 }
 
 var reduceFunction = function(key, value){
-    var retval = {'count':0};
+    var retval = {};
+    retval['KillsAhead']=0;
+    retval['KillsEqual']=0;
+    retval['DeathsAhead']= 0;
+    retval['DeathsEqual']= 0;
+
     value.forEach(function (object){
-        retval['count'] += object['count'];
+        retval['KillsAhead'] += object['KillsAhead'];
+        retval['KillsEqual'] += object['KillsEqual'];
+        retval['DeathsAhead'] += object['DeathsAhead'];
+        retval['DeathsEqual'] += object['DeathsEqual'];
 
     });
     return retval;
 }
 var finalize = function (key,value){
-    var res=key.split("-")
-    return({"KillerChampId":res[0],"VictimChampId":res[1],"MinuteMark":res[2],"Lead":res[3],"count":value['count']});
+
+    var RatioAhead = value['KillsAhead']/(value['DeathsAhead']+value['KillsAhead'])
+    var RatioEqual = (value['KillsEqual']/(value['DeathsEqual']+value['KillsEqual']))
+    var SnowballRatio = Math.round((3*RatioAhead)/RatioEqual)
+
+    return({'KillsAhead':value['KillsAhead'],'DeathsAhead':value['DeathsAhead'],'KillsEqual':value['KillsEqual'],'DeathsEqual':value['DeathsEqual'],'SnowballRating':SnowballRatio});
 
 }
 
@@ -61,7 +71,7 @@ mongodb.connect ('mongodb://mongo:27017/urfday',function(err,db){
             var pointerCollection = db.collection('MapReducePointers');
             var startPoint;
 
-            pointerCollection.find({Process:'KillsToOdds'}).limit(1).toArray(function(err, docs) {
+            pointerCollection.find({Process:'SnowballRating'}).limit(1).toArray(function(err, docs) {
                 if  (err){return console.dir(err);}
 
                 if(docs.length){
@@ -70,7 +80,7 @@ mongodb.connect ('mongodb://mongo:27017/urfday',function(err,db){
                     console.log("Picking up where we stopped at item " + startPoint);
                 }
                 else{
-                    db.collection('killsPerTimeSlice').drop();
+                    db.collection('SnowballRating').drop();
                     console.log("Never Run before, Starting The DB fresh");
                     startPoint = 0;
                 }
@@ -89,11 +99,11 @@ mongodb.connect ('mongodb://mongo:27017/urfday',function(err,db){
                         query = { $and: [{ _id: {$gt:startPointObject}},{_id:{$lte:LastItemAddedObject}}]};
 
                         console.log("Map reduce Started");
-                        db.collection('totalKillCollection').mapReduce(mapFunction,reduceFunction,{out:{reduce:'killsPerTimeSlice'},finalize:finalize,query:query,verbose:true},function(err,collection,stats){//finalize:finalize
+                        db.collection('totalKillCollection').mapReduce(mapFunction,reduceFunction,{out:{reduce:'SnowballRating'},finalize:finalize,query:query,verbose:true},function(err,collection,stats){//finalize:finalize
                             if(err){return console.dir(err);}
                             console.log("Map-Reduce completed")
                             console.log(stats)
-                            pointerCollection.findOneAndReplace({Process:'KillsToOdds'},{Process:'KillsToOdds', Location:LastItemAdded},{upsert:true},function(err,db){
+                            pointerCollection.findOneAndReplace({Process:'SnowballRating'},{Process:'SnowballRating', Location:LastItemAdded},{upsert:true},function(err,db){
                                 if  (err){return console.dir(err);}
                                 console.log("Updated Pointer of incremental map reduce to " + LastItemAdded)
                                 //setNextLoop()

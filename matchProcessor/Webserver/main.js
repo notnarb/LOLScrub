@@ -18,13 +18,16 @@ mongodb.connect ('mongodb://mongo:27017/urfday',function(err,db){
         app.use(express.bodyParser());
     });*/
 
-    app.get('/SoloKillPercentageOdds',function(req,res){
+    // works
+    app.get('/SoloKillOddsAgainstLead',function(req,res){
 
             db.collection('SoloKillPercentageOdds').find().toArray(function(err, docs) {
                 if  (err){return console.dir(err);}
                 retval = {};
                 docs.forEach(function(matchup){
-                    retval[[matchup.KillerId, matchup.VictimId].join("-")] = matchup.Minute;
+                    if(matchup.Lead != "Overall"){
+                        retval[[matchup.KillerId, matchup.VictimId,matchup.Lead].join("-")] = matchup.Minute;
+                    }
                     //console.log(retval);
                     //console.log(matchup);
 
@@ -37,8 +40,141 @@ mongodb.connect ('mongodb://mongo:27017/urfday',function(err,db){
             });
     });
 
+    app.get('/SoloKillOddsAgainstOverall',function(req,res){
 
-    app.get('/SoloKillPercentageOdds/:ChampId/:EnemyId',function(req,res){
+            db.collection('SoloKillPercentageOdds').find().toArray(function(err, docs) {
+                if  (err){return console.dir(err);}
+                retval = {};
+                docs.forEach(function(matchup){
+                    if(matchup.Lead == "Overall"){
+                        retval[[matchup.KillerId, matchup.VictimId].join("-")] = matchup.Minute;
+                    }
+                    //console.log(retval);
+                    //console.log(matchup);
+
+                });
+
+                res.writeHead(200, {"Content-Type":"application/json"});
+                res.write(JSON.stringify(retval));
+                res.end()
+
+            });
+    });
+
+    app.get('/MultiKills',function(req,res){
+
+             db.collection('GetMultiKills').find().toArray(function(err, docs) {
+                if  (err){return console.dir(err);}
+                retval = {};
+                docs.forEach(function(Champion){
+                    console.log(Champion);
+                    var ChampId = Champion['_id'];
+                    retval[ChampId] = {};
+                    retval[ChampId]['PentaRate'] = Champion.value.pentarate;
+                    retval[ChampId]['QuadraRate'] = Champion.value.quadrarate;
+                    retval[ChampId]['TripleRate'] = Champion.value.triplerate;
+                    retval[ChampId]['DoubleRate'] = Champion.value.doublerate;
+
+                });
+
+                res.writeHead(200, {"Content-Type":"application/json"});
+                res.write(JSON.stringify(retval));
+                res.end()
+
+            });
+    });
+
+    app.get('/SnowballValue',function(req,res){
+
+             db.collection('SnowballRating').find().toArray(function(err, docs) {
+                if  (err){return console.dir(err);}
+                retval = {};
+                docs.forEach(function(Champion){
+                    var ChampId = Champion['_id'];
+                    retval[ChampId] = Champion.value.SnowballRating;
+
+                });
+
+                res.writeHead(200, {"Content-Type":"application/json"});
+                res.write(JSON.stringify(retval));
+                res.end()
+
+            });
+    });
+
+    app.get('/OverallKsRate',function(req,res){
+
+             db.collection('GetOverallKsPerChamp').find().toArray(function(err, docs) {
+                if  (err){return console.dir(err);}
+                retval = {};
+                docs.forEach(function(Champion){
+                    var ChampId = Champion['_id'];
+                    retval[ChampId] = Champion.value.Odds;
+
+                });
+
+                res.writeHead(200, {"Content-Type":"application/json"});
+                res.write(JSON.stringify(retval));
+                res.end()
+
+            });
+    });
+    app.get('/SoloKillOddsOverall',function(req,res){
+
+             db.collection('OverallKillOddsTime').find().toArray(function(err, docs) {
+                if  (err){return console.dir(err);}
+                retval = {};
+                docs.forEach(function(Champion){
+                    var ChampId = Champion['_id'];
+                    retval[ChampId] = Champion.value.odds;
+
+                });
+
+                res.writeHead(200, {"Content-Type":"application/json"});
+                res.write(JSON.stringify(retval));
+                res.end()
+
+            });
+    });
+
+    app.get('/KsOddsOverall',function(req,res){
+
+             db.collection('GetOverallKSPerChampTime').find().toArray(function(err, docs) {
+                if  (err){return console.dir(err);}
+                retval = {};
+                docs.forEach(function(Champion){
+                    var ChampId = Champion['_id'];
+                    retval[ChampId] = Champion.value.Odds;
+
+                });
+
+                res.writeHead(200, {"Content-Type":"application/json"});
+                res.write(JSON.stringify(retval));
+                res.end()
+
+            });
+    });
+
+    app.get('/OverallSoloKillRate',function(req,res){
+
+             db.collection('OverallKillOdds').find().toArray(function(err, docs) {
+                if  (err){return console.dir(err);}
+                retval = {};
+                docs.forEach(function(Champion){
+                    var ChampId = Champion['_id'];
+                    retval[ChampId] = Champion.value.odds;
+
+                });
+
+                res.writeHead(200, {"Content-Type":"application/json"});
+                res.write(JSON.stringify(retval));
+                res.end()
+
+            });
+    });
+
+/*
+    app.get('/SoloKillOddsAgainst/:ChampId/:EnemyId',function(req,res){
 
             console.log({KillerId:req.params.ChampId,VictimId:req.params.EnemyId});
             db.collection('SoloKillPercentageOdds').findOne({KillerId:parseInt(req.params.ChampId),VictimId:parseInt(req.params.EnemyId)},function(err, docs) {
@@ -51,7 +187,7 @@ mongodb.connect ('mongodb://mongo:27017/urfday',function(err,db){
             });
     });
 
-    app.get('/SoloKillPercentageOdds/:ChampId/:EnemyId/:Minute',function(req,res){
+    app.get('/SoloKillOddsAgainst/:ChampId/:EnemyId/:Minute',function(req,res){
 
             console.log({KillerId:req.params.ChampId,VictimId:req.params.EnemyId});
             db.collection('SoloKillPercentageOdds').findOne({KillerId:parseInt(req.params.ChampId),VictimId:parseInt(req.params.EnemyId)},function(err, docs) {
@@ -64,8 +200,8 @@ mongodb.connect ('mongodb://mongo:27017/urfday',function(err,db){
 
             });
     });
-
-    app.get('/BestItemPerMatchup',function(req,res){
+*/
+    app.get('/BestItemsAgainst',function(req,res){
 
             db.collection('BestItemPerMinute').find().toArray(function(err, docs) {
                 if  (err){return console.dir(err);}
@@ -84,7 +220,9 @@ mongodb.connect ('mongodb://mongo:27017/urfday',function(err,db){
             });
     });
 
-    app.get('/BestItemPerMatchup/:ChampId/:EnemyId/:Minute',function(req,res){
+    /*
+
+    app.get('/BestItemAgainst/:ChampId/:EnemyId/:Minute',function(req,res){
 
             console.log({KillerId:req.params.ChampId,VictimId:req.params.EnemyId});
             db.collection('BestItemPerMinute').findOne({'value.ChampId':req.params.ChampId,'value.VictimId':req.params.EnemyId,'value.MinuteMark':req.params.Minute},function(err, docs) {
@@ -97,6 +235,8 @@ mongodb.connect ('mongodb://mongo:27017/urfday',function(err,db){
 
             });
     });
+    */
+
 
     app.get('/ExpectedItems',function(req,res){
 
@@ -116,7 +256,7 @@ mongodb.connect ('mongodb://mongo:27017/urfday',function(err,db){
 
             });
     });
-
+/*
     app.get('/ExpectedItems/:ChampId/:Minute',function(req,res){
 
             console.log({KillerId:req.params.ChampId,VictimId:req.params.EnemyId});
@@ -130,9 +270,9 @@ mongodb.connect ('mongodb://mongo:27017/urfday',function(err,db){
 
             });
     });
+*/
 
-
-    app.get('/GetKsOdds',function(req,res){
+    app.get('/KsOddsAgainst',function(req,res){
 
             db.collection('KsChancePerChamp').find().toArray(function(err, docs) {
                 if  (err){return console.dir(err);}
@@ -151,6 +291,7 @@ mongodb.connect ('mongodb://mongo:27017/urfday',function(err,db){
 
             });
     });
+    /*
     app.get('/GetKsOdds/:ChampId/:EnemyId/:Minute',function(req,res){
 
             console.log({KillerId:req.params.ChampId,VictimId:req.params.EnemyId});
@@ -164,6 +305,7 @@ mongodb.connect ('mongodb://mongo:27017/urfday',function(err,db){
 
             });
     });
+    */
 
 
     app.listen(PORT);
