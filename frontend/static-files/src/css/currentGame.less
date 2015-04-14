@@ -2,16 +2,121 @@
 @import "colors";
 
 #currentGame.inGame {
+	// Need to absolute position controls
+	position: relative;
 	.Flex();
+	.gameControlsContainer {
+		position: absolute;
+		left: 10%;
+		right: 10%;
+		text-align: center;
+		font-size: 0;			//I hate you inline blocks
+		
+		.gameControls {
+			height: 40px;
+			display: inline-block;
+			box-sizing: border-box;
+			background-color: @blueGrey400;
+			border-bottom-left-radius: 4px;
+			border-bottom-right-radius: 4px;
+			color: white;
+			line-height: 24px;
+			padding: 8px 24px;
+			div {
+				display: inline-block;
+				vertical-align: top;
+			}
+			.timeControls {
+
+				.gameClock {
+					font-size: 20px;
+				}
+				.control {
+					font-weight: 600;
+					font-size: 24px;
+					padding: 0px 8px;
+					cursor: pointer;
+					&:hover {
+						color: @cyan300;
+					}
+				}
+			}
+			.verticalSeparator {
+				width: 1px;
+				height: 24px;
+				margin-left: 3px;
+				margin-right: 4px;
+				background-color: @blueGrey100;
+			}
+			.buttons {
+				.reroll {
+					// 3px above + 1px border = 4px
+					margin-top: 3px;
+					margin-left: 8px;
+					margin-right: 8px;
+					height: 18px;
+					width: 18px;
+					box-sizing: border-box;
+					border: 1px solid white;
+					border-radius: 2px;
+					position: relative;
+					cursor: pointer;
+					&:hover {
+						color: @cyan300;
+						border-color: @cyan300;
+					}
+					&:before {
+						font-size: 13px;
+						position: absolute;
+						content: "\2022\2022\2022";
+						top: 0px;
+						left: 0;
+						width: 16px;
+						line-height: 8px;
+					}
+					&:after {
+						font-size: 13px;
+						position: absolute;
+						content: "\2022\2022\2022";
+						bottom: 1px;
+						left: 0;
+						width: 16px;
+						line-height: 8px;
+												   
+					}
+				}
+				.close {
+					// 'Times' buttons do not align well with other text
+					// Gonna settle for a 'I guess this looks good'
+					margin-left: 8px;
+					font-size: 32px;
+					cursor: pointer;
+					padding-right: 8px;
+					&:hover {
+						color: @cyan300;
+					}
+				}
+			}
+
+		}
+	}
 	.team {
 		// can grow, can't shrink
 		.FlexChild(0, 1, 0);
+		&.my {
+			.Flex(flex-start, column);
+		}
+		&.enemy {
+			.Flex(flex-start, column, stretch, flex-end);
+		}
 		max-width: 50%;
+		margin-top: 48px;
 	}
 
 	.champCard {
-		margin: 16px;
+		margin: 8px;
 		padding: 8px;
+		width: 256px;
 		max-width: 256px;
 		.zdepth2();
 		background-color: @grey200;

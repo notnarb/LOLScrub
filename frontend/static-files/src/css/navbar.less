@@ -5,7 +5,15 @@
 	box-sizing: border-box;
 	background-color: @blueGrey600;
 	color: white;
-	.Flex(flex-start, column);
+	@media (min-width: 768px) {
+		.Flex(flex-start, column);
+	}
+	@media (max-width: 768px) {
+		position:absolute;
+		top: 56px;
+		bottom: 0px;
+		z-index: 50;
+	}
 	padding-top: 16px;
 	overflow: hidden;
 	// handle item padding within each item

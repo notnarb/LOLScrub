@@ -18,15 +18,18 @@ var container = $('<div id="currentGame">');
 // after that you gotta click yourself
 var freeCheck = true;
 
-var inGame = false;
-
 var checkingInGame = false;
+
+var gameState = {
+	currentGame: null
+	
+};
 
 module.exports.render = function () {
 	// if (!container) {
 	// 	container = notInGameTemplate({}); //currentGameTemplate({myTeam: [0,1,2,3]});
 	// }
-	if (inGame) {
+	if (gameState.currentGame) {
 		renderInGameScreen();
 	} else {
 		renderNotInGameScreen();
@@ -39,6 +42,22 @@ module.exports.render = function () {
  */
 function isOnScreen () {
 	return container.closest('body').length;
+}
+
+/**
+ * Get game minute after taking time displacements (Fast forward and rewind) into account
+ */
+function getGameMinute () {
+	if (!gameState.currentGame) {
+		throw "No current game";
+	}
+	var elapsedSeconds = Math.floor((Date.now() - gameState.currentGame.startTime) / 1000);
+	var minutes = Math.floor(elapsedSeconds / 60) + gameState.currentGame.timeDisplacement;
+	// No point showing times over 1 minute
+	if (minutes > 49) {
+		minutes = 49;
+	}
+	return minutes;
 }
 
 // Listen to updates to userInfo.  On updates, re-render the content
@@ -64,8 +83,30 @@ $('body').on('click', '#currentGame', function (event) {
 		checkIfInGame();
 		break;
 	case 'simulateGame':
-		inGame = true;
+		gameState.currentGame = generateSimulatedGame();
 		module.exports.render();
+		break;
+	case 'reroll':
+		gameState.currentGame = generateSimulatedGame();
+		module.exports.render();
+		break;
+	case 'close':
+		gameState.currentGame = null;
+		module.exports.render();
+		break;
+	case 'fastforward':
+		if (getGameMinute() < 49) {
+			gameState.currentGame.timeDisplacement++;
+		}
+		updateClock();
+		fillInPercents();
+		break;
+	case 'rewind':
+		if (getGameMinute() >= 1) {
+			gameState.currentGame.timeDisplacement--;
+		}
+		updateClock();
+		fillInPercents();
 		break;
 	default:
 		console.log('unknown action:', data.action);
@@ -124,7 +165,7 @@ function renderNotInGameScreen () {
 // };
 
 function generateName () {
-	var prefixes = ['The great', '', 'Not', 'Very', 'Original'];
+	var prefixes = ['The Great', '', 'Not', 'Very', 'Original'];
 	var adjectives = ['Salty', 'Smelly', 'Spooky', 'Rugged', 'Seductive'];
 	var nouns = ['Mr Worldwide', 'Oakland Raiders', 'Teemo', 'Sean Paul', 'Veigar', 'Lee Sin', 'OuttaNames'];
 
@@ -143,9 +184,11 @@ function generateName () {
 
 function generateSimulatedGame () {
 	var retval = {
-		participants : []
+		participants : [],
+		startTime: Date.now(),
+		lastUpdatedMinute: -1,
+		timeDisplacement: 0		//how fast forwarded or rewinded this game is
 	};
-	retval.startTime = Date.now();
 
 	var champIdList = champs.getIdList();
 	var teamCount = {
@@ -173,12 +216,12 @@ function generateSimulatedGame () {
  * 
  */
 function renderInGameScreen () {
-	var simulatedGame = generateSimulatedGame();
+	var game = gameState.currentGame;
 	var myTeamNumber = '100';
 	var state = {};
 	var myTeam = [];
 	var enemyTeam = [];
-	simulatedGame.participants.forEach(function (participant) {
+	game.participants.forEach(function (participant) {
 		if (participant.team === myTeamNumber) {
 			myTeam.push(participant);
 		} else {
@@ -187,13 +230,37 @@ function renderInGameScreen () {
 	});
 	state.myTeam = myTeam;
 	state.enemyTeam = enemyTeam;
-	
+	// TODO: probably not 'me'
+	state.myChampId = myTeam[0].champId;
+	state.startTime = game.startTime;
+
 	var toRender = $(inGameTemplate(state));
 	container.replaceWith(toRender);
 	container = toRender;
-	fillInCharts();
+	fillInData();
 }
 
+function fillInData() {
+	stats.loadOdds().then(function () {
+		fillInPercents();
+		fillInCharts();
+	});
+}
+
+function fillInPercents () {
+	container.find('.LS_update_odds').each(function () {
+		var element = $(this);
+		var yourChampId = element.attr('data-your-champ');
+		var theirChampId = element.attr('data-their-champ');
+		var startTime = element.attr('data-start-time');
+		var elapsedSeconds = Math.floor((Date.now() - startTime) / 1000);
+		var minutes = getGameMinute();
+		var currentOdds = stats.getOddsByTimestamp(yourChampId, theirChampId, minutes);
+		element.html(Math.round(currentOdds))
+			.css('color', calculateColor(currentOdds));
+	});
+
+}
 
 /**
  * finds all chart containers and fills them in with charts
@@ -203,14 +270,14 @@ function fillInCharts () {
 	container.find('[data-chart-odds]').each(function () {
 		var element = $(this);
 		var data = element.data();
-		var myChamp = data['my-champ'];
-		var theirChamp = data['their-champ'];
+		var myChamp = data.myChamp;
+		var theirChamp = data.theirChamp;
 		var odds = stats.getOddsArray(myChamp, theirChamp);
 		console.log(odds);
 		// get canvas
 		var ctx = this.getContext("2d");
 		var chartData = {
-			labels: ['Minute 1','Minute 2','Minute 3','Minute 4','Minute 5','Minute 6','Minute 7','Minute 8','Minute 9','Minute 10','Minute 11','Minute 12','Minute 13','Minute 14','Minute 15','Minute 16','Minute 17','Minute 18','Minute 19','Minute 20','Minute 21','Minute 22','Minute 23','Minute 24','Minute 25','Minute 26','Minute 27','Minute 28','Minute 29','Minute 30'], //I used a macro, I swear
+			labels: ['Minute 0', 'Minute 1','Minute 2','Minute 3','Minute 4','Minute 5','Minute 6','Minute 7','Minute 8','Minute 9','Minute 10','Minute 11','Minute 12','Minute 13','Minute 14','Minute 15','Minute 16','Minute 17','Minute 18','Minute 19','Minute 20','Minute 21','Minute 22','Minute 23','Minute 24','Minute 25','Minute 26','Minute 27','Minute 28','Minute 29'], //I used a macro, I swear
 			datasets: [{
 				label: "Odds",
 				data: odds,
@@ -224,8 +291,8 @@ function fillInCharts () {
 	container.find('[data-chart-ks-odds]').each(function () {
 		var element = $(this);
 		var data = element.data();
-		var myChamp = data['my-champ'];
-		var theirChamp = data['their-champ'];
+		var myChamp = data.myChamp;
+		var theirChamp = data.theirChamp;
 		var odds = stats.getOddsArray(myChamp, theirChamp);
 		console.log(odds);
 		// get canvas
@@ -257,3 +324,54 @@ var chartOptions = {
 	datasetStrokeWidth: 1,
 	responsive: true
 };
+
+
+
+/**
+ * Convert a percent chance of winning to an rgb() value.
+ * @param {Number} odds - the percentage chance of winnig
+ * @returns {String} - color in rgb(x,x,x) format
+ */
+function calculateColor(odds) {
+	var green =odds / 100 * 255;
+	var red = (100 - odds) / 100 * 255;
+	if (green > red) {
+		red = parseInt(red / 2, 10);
+		green = parseInt(green, 10);
+	} else {
+		green = parseInt(green / 2, 10);
+		red = parseInt(red, 10);
+	}
+	return "rgb(" + [red, green, 0].join(",") + ")";
+}
+
+
+
+function updateClock() {
+	container.find('.gameClock').each(function () {
+		var element = $(this);
+		var startTime = element.attr('data-start-time');
+		var elapsedSeconds = Math.round((Date.now() - startTime) / 1000);
+		var seconds = elapsedSeconds % 60;
+		var minutes = getGameMinute();
+		if (minutes !== gameState.lastUpdatedMinute) {
+			stats.loadOdds().then(function () {
+				fillInPercents();
+			});
+			gameState.lastUpdatedMinute = minutes;
+		}
+		if (minutes < 10) {
+			minutes = "0" + minutes;
+		}
+		if (seconds < 10) {
+			seconds = "0" + seconds;
+		}
+		element.html(minutes + ":" + seconds);
+	});
+}
+
+setInterval(function () {
+	if (gameState.currentGame) {
+		updateClock();
+	}
+}, 1000);

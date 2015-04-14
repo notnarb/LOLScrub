@@ -143,6 +143,22 @@ app.get('/getstatic', function (req, res) {
 });
 
 
+app.get('/solokillodds', function (req, res) {
+	var response;
+	if (!soloKillOddsMap) {
+		res.writeHead(503, {'Content-Type': 'application/json'});
+		response = {
+			error: "Odds not loaded"
+		};
+		res.end(JSON.stringify(response));
+		return;
+	}
+	response = {results: soloKillOddsMap};
+	res.writeHead(200, {'Content-Type': 'application/json'});
+	res.end(JSON.stringify(response));
+});
+
+
 /**
  * Handler for requests which fall through all other requests
  */
@@ -205,6 +221,25 @@ function getChampData () {
 	});
 }
 
+var soloKillOddsMap = null;
+/**
+ * Obtains solo kill percentage odds from the backend 
+ */
+function getSoloKillOddsData () {
+	request.getAsync('/SoloKillPercentageOdds/').then(function (results) {
+		var response = results[0];
+		var responseBody = results[1];
+		if (response.statusCode === 200) {
+			soloKillOddsMap = responseBody;
+		} else {
+			throw new Error("Invalid status code (" + response.statusCode + ") when obtaining solo kill odds");
+		}
+	}).catch(function (error) {
+		console.log("Failed to get Solo kill odds", error, "trying again in 10 seconds");
+		setTimeout(getSoloKillOddsData, 10000);
+	});
+}
+
 function ErrorHandler (err, req, res, next) {
 	var errorCode = 500;
 	if (err.code) {
@@ -222,7 +257,7 @@ console.log('listening on port', HTTP_PORT);
 
 getItemData();
 getChampData();
-
+getSoloKillOddsData();
 
 // TODO: these should probably get moved to their own module
 
