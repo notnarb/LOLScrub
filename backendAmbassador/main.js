@@ -33,6 +33,26 @@ app.get('/matchlookup/**', function (req, res) {
 	console.log('matchlookup');
 	proxy.web(req, res, {target: 'http://summonerlookup:8000'});
 });
+app.get('/SoloKillPercentageOdds/**', function (req, res) {
+	console.log('solo kill percentage odds');
+	proxy.web(req, res, {target: 'http://webserver:8000'});
+});
+
+app.get('/BestItemPerMatchup', function (req, res) {
+	console.log('Best items per matchup');
+	proxy.web(req, res, {target: 'http://webserver:8000'});
+});
+
+app.get('/ExpectedItems', function (req, res) {
+	console.log('Expected items');
+	proxy.web(req, res, {target: 'http://webserver:8000'});
+});
+
+app.get('/GetKsOdds', function (req, res) {
+	console.log('KS odds');
+	proxy.web(req, res, {target: 'http://webserver:8000'});
+});
+
 
 app.get('/', function (req, res) {
 	console.log('/');
