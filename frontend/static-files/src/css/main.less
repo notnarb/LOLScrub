@@ -2,7 +2,7 @@
  * Base styles to inherit and base styles for element classes
  */
 @import "mixins";
-
+@import "colors";
 html {
 	height: 100%;
 }
@@ -12,12 +12,18 @@ body {
 	font-size: 13px;
 	// no selection here folks
 	cursor: default;
+	.Flex(center);
+	background-color: @blueGrey400;
 }
 // Main layout
 #container {
+	// can grow, can't shrink
+	.FlexChild(0,1,1);
+	max-width: 1024px;
 	height: 100%;
 	// allow for stretching on the cross axis (fill vertical space)
 	.Flex(flex-start, column, stretch, stretch);
+	box-shadow: 0 0 8px 0 rgba(0,0,0,0.8);
 }
 #header {
 	// Can't grow, can't shrink
@@ -26,6 +32,7 @@ body {
 }
 #bottomContainer {
 	// Below the header
+	background-color: white;
 	z-index: 0;
 	// Can grow, can't shrink
 	.FlexChild(0,1,0);
@@ -33,6 +40,8 @@ body {
 	.Flex(flex-start, row, stretch, stretch);
 	width: 100%;
 	overflow: hidden;
+	padding-right: 8px;
+	box-sizing: border-box;
 	#navbar {
 		// Can't grow, can't shrink (via flexbox at least)
 		.FlexChild(0,0,0);

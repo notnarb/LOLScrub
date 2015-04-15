@@ -16,8 +16,13 @@ module.exports.get = function (uri) {
 				if (data instanceof Object) {
 					resolve(data);
 					return;
+				} else {
+					try {
+						resolve(JSON.parse(data));
+					} catch (error) {
+						reject(error);
+					}
 				}
-				reject(new Error('failed to parse response'));
 
 			},
 			error: function (error) {
