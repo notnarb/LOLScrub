@@ -99,6 +99,7 @@ $('body').on('click', '#currentGame', function (event) {
 			gameState.currentGame.timeDisplacement++;
 		}
 		updateClock();
+		updateChartMarkers();
 		fillInPercents();
 		break;
 	case 'rewind':
@@ -106,6 +107,7 @@ $('body').on('click', '#currentGame', function (event) {
 			gameState.currentGame.timeDisplacement--;
 		}
 		updateClock();
+		updateChartMarkers();
 		fillInPercents();
 		break;
 	default:
@@ -345,7 +347,24 @@ function calculateColor(odds) {
 	return "rgb(" + [red, green, 0].join(",") + ")";
 }
 
+var CHART_WIDTH = 256;			//width in pixels of the game charts
+var CHART_SECONDS = 30 * 60; // number of seconds in a chart (of 30 minutes worth of data)
 
+function updateChartMarkers () {
+	// note: chart containers start at -10 px so use right property instead of left
+	var startTime = gameState.currentGame.startTime;
+	var elapsedSeconds = Math.round((Date.now() - startTime) / 1000);
+	var seconds = elapsedSeconds % 60;
+	var minutes = getGameMinute();
+	var totalGameSeconds = minutes * 60 + seconds;
+	var rightPosition = CHART_WIDTH - Math.round((totalGameSeconds / CHART_SECONDS) * CHART_WIDTH);
+	container.find('.chartMarker').each(function () {
+		var element = $(this);
+		$.Velocity(element, "stop");
+		$.Velocity(element, {'right': rightPosition + 'px'}, "linear");
+		// $(this).css('right', rightPosition + 'px');
+	});
+}
 
 function updateClock() {
 	container.find('.gameClock').each(function () {
@@ -373,5 +392,6 @@ function updateClock() {
 setInterval(function () {
 	if (gameState.currentGame) {
 		updateClock();
+		updateChartMarkers();
 	}
 }, 1000);
