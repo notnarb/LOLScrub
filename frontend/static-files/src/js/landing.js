@@ -2,14 +2,13 @@
  * Handles the actions relevant to the navbar on the left hand side
  */
 var Promise = require('bluebird');
-var navbarTemplate = require('../tmpl/navbar.hbs');
+var navbarTemplate = require('../tmpl/landing.hbs');
 var content = require('./content');
 
-var navbar;
 
 var currentAnimation = Promise.resolve();
 
-$('body').on('click', '#navbar', function (event) {
+$('body').on('click', '#landing', function (event) {
 	var target = $(event.target);
 
 	var actionTarget = target.closest('[data-action]');
@@ -21,18 +20,10 @@ $('body').on('click', '#navbar', function (event) {
 	var data = actionTarget.data();
 
 	switch(data.action) {
-	case 'loadCurrentGame':
+	case 'entersite':
 		content.currentGame();
-		setActive('current');
+		navbar.setActive('current');
 		break;
-	case 'loadAboutPage':
-		content.aboutScreen();
-		setActive('aboutPage');
-		break;
-	case 'loadLandingPage':
-	    content.landingPage();
-	    setActive('landingPage');
-	    break;
 	default:
 		alert('Not yet implemented');
 	}
@@ -42,44 +33,12 @@ $('body').on('click', '#navbar', function (event) {
  * Sets the specified tab as 'active'
  * @param {String} tab - one of 'current', 'champStats', 'pentasPage', 'aboutPage'
  */
-function setActive (tab) {
-	if (['landingPage','current', 'champStats', 'pentasPage', 'aboutPage'].indexOf(tab) === -1) {
-		console.log('Invalid tab name', tab);
-		return;
-	}
-	var oldActive = navbar.find('.navItem.active');
-	var newActive = navbar.find('.navItem.' + tab);
-	if (newActive.length) {
-		if (oldActive) {
-			oldActive.removeClass('active');
-		}
-		newActive.addClass('active');
-	}
-};
 
-module.exports.setActive = setActive;
-
-function toggle () {
-	// Don't do anything if there is a navigation in progress
-	if (!currentAnimation.isFulfilled()) {
-		return currentAnimation;
-	}
-	if (navbar.attr('data-shrunk')) {
-		currentAnimation = $.Velocity(navbar, 'reverse').then(function () {
-			navbar.attr('data-shrunk', false);
-		});
-	} else {
-		currentAnimation = $.Velocity(navbar, {width:0}).then(function () {
-			navbar.attr('data-shrunk', true);
-		});
-	}
-	return currentAnimation;
-}
-module.exports.toggle = toggle;
 
 /**
  * Renders the navigation bar
  */
+ /*
 module.exports.render = function () {
 	var navItems = [ {
 		text: "Landing Page",
@@ -114,3 +73,4 @@ module.exports.render = function () {
 	}
 	return navbar;
 };
+*/
