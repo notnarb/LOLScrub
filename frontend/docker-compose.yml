@@ -12,6 +12,7 @@ webproxy:
     - appserver
   volumes_from:
     - static
+    - appserver                 # get cache from appserver
   ports:
     - "80:80"
     - "443:443"

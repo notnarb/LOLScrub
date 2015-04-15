@@ -1,4 +1,18 @@
 <div id="currentGame" class="inGame">
+  <div class="gameControlsContainer">
+    <div class="gameControls">
+      <div class="timeControls">
+        <div class='rewind control' data-action="rewind" title="Rewind 1 minute">&laquo;</div>
+        <div class='gameClock' data-start-time="{{startTime}}">00:00</div>
+        <div class='fastforward control' data-action="fastforward" title="Fast forward 1 minute">&raquo;</div>
+      </div>
+      <div class="verticalSeparator"></div>
+      <div class="buttons">
+        <div class="reroll" data-action="reroll" title="Reroll this game"></div>
+        <div class="close" data-action="close" title="Exit this game screen">&times;</div>
+      </div>
+    </div>
+  </div>
   <div class="my team">
       {{#each myTeam}}
         <div class="champCard">
@@ -8,7 +22,7 @@
             </div>
             <div class="stats">
               <div class="name">{{name}}</div>
-              <div class="currentOdds">{{updatingOdds 1 champId 100}}%</div>
+              <div class="currentOdds">{{updatingOdds ../myChampId champId ../startTime}}%</div>
               <div class="itemSuggestions">
                 <div class="item"></div>
                 <div class="item"></div>
@@ -18,7 +32,8 @@
           </div>
           <div class="bottom">
             <div class="chartContainer">
-              <canvas class="chart" height="60px" data-chart-ks-odds data-my-champ="{{champId}}" data-their-champ="{{champId}}"></canvas> {{!TODO: global pointer to my champ}}
+              <div data-chart-marker class="chartMarker"></div>
+              <canvas class="chart" height="60px" data-chart-ks-odds data-my-champ="{{../myChampId}}" data-their-champ="{{champId}}"></canvas> {{!TODO: global pointer to my champ}}
             </div>
           </div>
         </div>
@@ -34,7 +49,7 @@
             </div>
             <div class="stats">
               <div class="name">{{name}}</div>
-              <div class="currentOdds">{{updatingOdds 1 champId 100}}%</div>
+              <div class="currentOdds">{{updatingOdds ../myChampId champId ../startTime}}%</div>
               <div class="itemSuggestions">
                 <div class="item"></div>
                 <div class="item"></div>
@@ -44,7 +59,8 @@
           </div>
           <div class="bottom">
             <div class="chartContainer">
-              <canvas class="chart" height="60px" data-chart-odds data-my-champ="{{champId}}" data-their-champ="{{champId}}"></canvas> {{!TODO: global pointer to my champ}}
+              <div data-chart-marker class="chartMarker"></div>
+              <canvas class="chart" height="60px" data-chart-odds data-my-champ="{{../myChampId}}" data-their-champ="{{champId}}"></canvas> {{!TODO: global pointer to my champ}}
             </div>
           </div>
         </div>

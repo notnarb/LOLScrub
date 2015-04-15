@@ -5,8 +5,10 @@ var express = require('express');
 var morgan = require('morgan');
 var redis = require('redis');
 var connectTimeout = require('connect-timeout');
+var fs = require('fs');
 
 Promise.promisifyAll(redis);
+Promise.promisifyAll(fs);
 
 var redisClient = redis.createClient(6379, 'redis', {});
 
@@ -119,26 +121,29 @@ app.get('/getmyinfo/:summonerName', function (req, res, next) {
 	});
 });
 
+
 /**
- * Serve static data that I should really be feeding into the html file....
+ * error handler for /getstatic requests that made it this far (it should be
+ * served as a static file by nginx)
  */ 
 app.get('/getstatic', function (req, res) {
-	var response;
-	if (!champMap || !itemMap) {
-		res.writeHead(503, {'Content-Type': 'application/json'});
-		response = {
-			error: "champMap or itemMap not loaded",
-			champMapLoaded: !!champMap,
-			itemMapLoaded: !!itemMap
-		};
-		res.end(JSON.stringify(response));
-		return;
-	}
-	response = {
-		itemMap: itemMap,
-		champMap: champMap
+	
+	res.writeHead(503, {'Content-Type': 'application/json'});
+	var response = {
+		error: "static data not stored properly"
 	};
-	res.writeHead(200, {'Content-Type': 'application/json'});
+	res.end(JSON.stringify(response));
+});
+
+/**
+ * Error handler for /solokillodds requests that made it this far (it should be
+ * caught by the try_files block in nginx)
+ */
+app.get('/solokillodds', function (req, res) {
+	res.writeHead(503, {'Content-Type': 'application/json'});
+	var response = {
+		error: "solo kill odds not stored properly"
+	};
 	res.end(JSON.stringify(response));
 });
 
@@ -159,7 +164,7 @@ var itemMap = null;
  * Eventually populates itemMap with the static item data from the backend
  */
 function getItemData () {
-	request.getAsync('/itemlist').then(function (results) {
+	return request.getAsync('/itemlist').then(function (results) {
 		var response = results[0];
 		var responseBody = results[1];
 		if (response.statusCode === 200 && Object.keys(responseBody)) {
@@ -170,13 +175,13 @@ function getItemData () {
 				delete responseBody[itemId].description;
 				delete responseBody[itemId].image;
 			});
-			itemMap = responseBody;
+			return responseBody;
 		} else {
 			throw new Error("Invalid status code (" + response.statusCode + ") or body " + JSON.stringify(responseBody) + 'when looking up items');
 		}
 	}).catch(function (error) {
 		console.log("Failed to get itemlist", error, "trying again in 10 seconds");
-		setTimeout(getItemData, 10000);
+		return Promise.delay(10000, getItemData);
 	});
 }
 
@@ -185,7 +190,7 @@ var champMap = null;
  * Eventually populates champMap with the static item data from the backend
  */
 function getChampData () {
-	request.getAsync('/champlist').then(function (results) {
+	return request.getAsync('/champlist').then(function (results) {
 		var response = results[0];
 		var responseBody = results[1];
 		if (response.statusCode === 200 && Object.keys(responseBody)) {
@@ -195,13 +200,34 @@ function getChampData () {
 				delete responseBody[champId].image;
 				delete responseBody[champId].title;
 			});
-			champMap = responseBody;
+			return responseBody;
 		} else {
 			throw new Error("Invalid status code (" + response.statusCode + ") or body " + JSON.stringify(responseBody) + 'when looking up items');
 		}
 	}).catch(function (error) {
 		console.log("Failed to get champlist", error, "trying again in 10 seconds");
-		setTimeout(getChampData, 10000);
+		return Promise.delay(10000).then(getChampData);
+	});
+}
+
+var soloKillOddsMap = null;
+/**
+ * Obtains solo kill percentage odds from the backend 
+ */
+function getSoloKillOddsData () {
+	request.getAsync('/SoloKillOddsAgainstOverall/').then(function (results) {
+		var response = results[0];
+		var responseBody = results[1];
+		if (response.statusCode === 200) {
+			fs.writeFileAsync('/var/www/cache/solokillodds', JSON.stringify(responseBody)).then(function () {
+				console.log('wrote solo kill data');
+			}); 
+		} else {
+			throw new Error("Invalid status code (" + response.statusCode + ") when obtaining solo kill odds");
+		}
+	}).catch(function (error) {
+		console.log("Failed to get Solo kill odds", error, "trying again in 10 seconds");
+		setTimeout(getSoloKillOddsData, 10000);
 	});
 }
 
@@ -220,9 +246,14 @@ http.createServer(app).listen(HTTP_PORT);
 
 console.log('listening on port', HTTP_PORT);
 
-getItemData();
-getChampData();
-
+Promise.props({itemMap: getItemData(), champMap: getChampData()}).then(function (props) {
+	// props with = itemMap : itemMap, champMap: champMap
+	console.log('writing static data', props);
+	fs.writeFileAsync('/var/www/cache/getstatic', JSON.stringify(props)).then(function () {
+		console.log('Wrote static data');
+	});
+});
+getSoloKillOddsData();
 
 // TODO: these should probably get moved to their own module
 
