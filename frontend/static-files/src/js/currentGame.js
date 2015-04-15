@@ -358,12 +358,9 @@ function updateChartMarkers () {
 	var minutes = getGameMinute();
 	var totalGameSeconds = minutes * 60 + seconds;
 	var rightPosition = CHART_WIDTH - Math.round((totalGameSeconds / CHART_SECONDS) * CHART_WIDTH);
-	container.find('.chartMarker').each(function () {
-		var element = $(this);
-		$.Velocity(element, "stop");
-		$.Velocity(element, {'right': rightPosition + 'px'}, "linear");
-		// $(this).css('right', rightPosition + 'px');
-	});
+	var markers = container.find('.chartMarker');
+	$.Velocity(markers, "stop");
+	$.Velocity(markers, {'right': rightPosition + 'px'}, "linear");
 }
 
 function updateClock() {
