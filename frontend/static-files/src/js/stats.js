@@ -6,9 +6,10 @@ var helpers = require('./helpers');
 var soloKillOddsMap = null;
 
 var oddsLoaded = helpers.get('/app/solokillodds').then(function (response) {
-	soloKillOddsMap = response.results;
+	soloKillOddsMap = response;
 }).catch(function (error) {
 	alert('Failed to get solo kill odds data');
+	console.log('Failed to get solo kill odds data', error);
 });
 
 /**
@@ -27,7 +28,7 @@ module.exports.loadOdds = function () {
 module.exports.getOddsByTimestamp = function (yourChampId, theirChampId, timestamp) {
 	// lol, TODO:
 	var key = [yourChampId, theirChampId].join("-");
-	return soloKillOddsMap[key][timestamp] * 100;
+	return soloKillOddsMap[key][timestamp];
 };
 
 
@@ -39,7 +40,7 @@ module.exports.getOddsArray = function (yourChampId, theirChampId) {
 	var key = [yourChampId, theirChampId].join("-");
 	var retval = [];
 	for (var i = 0; i < 50; i++) {
-		retval.push(soloKillOddsMap[key][i] * 100);
+		retval.push(soloKillOddsMap[key][i]);
 	}
 	return retval;
 

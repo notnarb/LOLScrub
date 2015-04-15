@@ -25,11 +25,11 @@ app.get('/itemlist', function (req, res) {
 	console.log('itemlist');
 	proxy.web(req, res, {target: 'http://staticgetter:8000'});
 });
-app.get('/summonerlookup', function (req, res) {
+app.get('/summonerlookup/**', function (req, res) {
 	console.log('summonerlookup');
 	proxy.web(req, res, {target: 'http://summonerlookup:8000'});
 });
-app.get('/matchlookup', function (req, res) {
+app.get('/matchlookup/**', function (req, res) {
 	console.log('matchlookup');
 	proxy.web(req, res, {target: 'http://summonerlookup:8000'});
 });
