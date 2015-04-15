@@ -210,7 +210,6 @@ function getChampData () {
 	});
 }
 
-var soloKillOddsMap = null;
 /**
  * Obtains solo kill percentage odds from the backend 
  */
@@ -230,6 +229,30 @@ function getSoloKillOddsData () {
 		setTimeout(getSoloKillOddsData, 10000);
 	});
 }
+
+function getKsOddsData () {
+	request.getAsync('/KsOddsAgainst').then(function (results) {
+		var response = results[0];
+		var responseBody = results[1];
+		if (response.statusCode === 200) {
+			Object.keys(responseBody).forEach(function (key) {
+				// TODO: at some point the format of the KsOddsData should
+				// probably get changed...  In the meantime convert each data
+				// point to a whole number
+				responseBody[key] = Math.round(responseBody[key] * 100);
+			});
+			fs.writeFileAsync('/var/www/cache/ksoddsagainst', JSON.stringify(responseBody)).then(function () {
+				console.log('wrote kill steal data');
+			}); 
+		} else {
+			throw new Error("Invalid status code (" + response.statusCode + ") when obtaining solo kill odds");
+		}
+	}).catch(function (error) {
+		console.log("Failed to get KS odds", error, "trying again in 10 seconds");
+		setTimeout(getKsOddsData, 10000);
+	});
+}
+
 
 function ErrorHandler (err, req, res, next) {
 	var errorCode = 500;
@@ -254,6 +277,7 @@ Promise.props({itemMap: getItemData(), champMap: getChampData()}).then(function 
 	});
 });
 getSoloKillOddsData();
+getKsOddsData();
 
 // TODO: these should probably get moved to their own module
 

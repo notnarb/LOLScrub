@@ -43,13 +43,18 @@ Handlebars.registerHelper("updatingOdds", function (yourChampId, theirChampId, s
 	if (!yourChampId || !theirChampId || !startTime) {
 		throw "Invalid arguments";
 	}
-	// var currentOdds = stats.getOddsByTimestamp(yourChampId, theirChampId, startTime); //TODO: replace with minute markers
-	// // var element = $('<span>').data({yourChamp:yourChampId, theirChamp: theirChampId, startTIme: startTime}).html(currentOdds);
-	// var odds = parseInt(currentOdds, 10);
 	var dataString = [ 'data-your-champ="', yourChampId , '" data-their-champ="', theirChampId, '" data-start-time="',startTime, '"'].join("");
 	// assign a class for cheaper selection
 	var element = '<span class="LS_update_odds" ' +  dataString + '></span>';
 	return new Handlebars.SafeString(element);
 });
 
-
+Handlebars.registerHelper("updatingKSOdds", function (yourChampId, theirChampId, startTime) {
+	if (!yourChampId || !theirChampId || !startTime) {
+		throw "Invalid arguments";
+	}
+	var dataString = [ 'data-your-champ="', yourChampId , '" data-their-champ="', theirChampId, '" data-start-time="',startTime, '"'].join("");
+	// assign a class for cheaper selection
+	var element = '<span class="LS_KS_update_odds" ' +  dataString + '></span>';
+	return new Handlebars.SafeString(element);
+});

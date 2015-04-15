@@ -261,6 +261,22 @@ function fillInPercents () {
 		element.html(Math.round(currentOdds))
 			.css('color', calculateColor(currentOdds));
 	});
+	container.find('.LS_KS_update_odds').each(function () {
+		var element = $(this);
+		var yourChampId = element.attr('data-your-champ');
+		var theirChampId = element.attr('data-their-champ');
+		var startTime = element.attr('data-start-time');
+		var elapsedSeconds = Math.floor((Date.now() - startTime) / 1000);
+		var minutes = getGameMinute();
+		var currentKsOdds = stats.getKsOddsByTimestamp(yourChampId, theirChampId, minutes);
+		// KS odds aren't smoothed.  Treat gaps as question marks TODO: maybe it
+		// should inherit the previous time like getKsOddsArray
+		if (currentKsOdds === undefined) {
+			currentKsOdds = 0;
+		}
+		element.html(currentKsOdds)
+			.css('color', calculateColor(100 - currentKsOdds)); // Closer to 0 is better, so use inverse
+	});
 
 }
 
@@ -283,8 +299,8 @@ function fillInCharts () {
 			datasets: [{
 				label: "Odds",
 				data: odds,
-				fillColor: "rgba(76,175,80,0.2)",
-				strokeColor: "rgba(76,175,80,1)"
+				fillColor: "rgba(63,81,181,0.2)", //indigo500
+				strokeColor: "rgba(63,81,181,1)"
 			}]
 		};
 		var chart = new Chart(ctx).Line(chartData, chartOptions);
@@ -295,17 +311,17 @@ function fillInCharts () {
 		var data = element.data();
 		var myChamp = data.myChamp;
 		var theirChamp = data.theirChamp;
-		var odds = stats.getOddsArray(myChamp, theirChamp);
+		var odds = stats.getKsOddsArray(myChamp, theirChamp);
 		console.log(odds);
 		// get canvas
 		var ctx = this.getContext("2d");
 		var chartData = {
-			labels: ['Minute 1','Minute 2','Minute 3','Minute 4','Minute 5','Minute 6','Minute 7','Minute 8','Minute 9','Minute 10','Minute 11','Minute 12','Minute 13','Minute 14','Minute 15','Minute 16','Minute 17','Minute 18','Minute 19','Minute 20','Minute 21','Minute 22','Minute 23','Minute 24','Minute 25','Minute 26','Minute 27','Minute 28','Minute 29','Minute 30'], //I used a macro, I swear
+			labels: ['Minute 0', 'Minute 1','Minute 2','Minute 3','Minute 4','Minute 5','Minute 6','Minute 7','Minute 8','Minute 9','Minute 10','Minute 11','Minute 12','Minute 13','Minute 14','Minute 15','Minute 16','Minute 17','Minute 18','Minute 19','Minute 20','Minute 21','Minute 22','Minute 23','Minute 24','Minute 25','Minute 26','Minute 27','Minute 28','Minute 29','Minute 29'], //I used a macro, I swear
 			datasets: [{
 				label: "Odds",
 				data: odds,
-				fillColor: "rgba(76,175,80,0.2)",
-				strokeColor: "rgba(76,175,80,1)"
+				fillColor: "rgba(156,39,176,0.2)", //purple500
+				strokeColor: "rgba(156,39,176,1)"
 			}]
 		};
 		var chart = new Chart(ctx).Line(chartData, chartOptions);
@@ -353,7 +369,7 @@ var CHART_SECONDS = 30 * 60; // number of seconds in a chart (of 30 minutes wort
 function updateChartMarkers () {
 	// note: chart containers start at -10 px so use right property instead of left
 	var startTime = gameState.currentGame.startTime;
-	var elapsedSeconds = Math.round((Date.now() - startTime) / 1000);
+	var elapsedSeconds = Math.floor((Date.now() - startTime) / 1000);
 	var seconds = elapsedSeconds % 60;
 	var minutes = getGameMinute();
 	var totalGameSeconds = minutes * 60 + seconds;
@@ -367,7 +383,7 @@ function updateClock() {
 	container.find('.gameClock').each(function () {
 		var element = $(this);
 		var startTime = element.attr('data-start-time');
-		var elapsedSeconds = Math.round((Date.now() - startTime) / 1000);
+		var elapsedSeconds = Math.floor((Date.now() - startTime) / 1000);
 		var seconds = elapsedSeconds % 60;
 		var minutes = getGameMinute();
 		if (minutes !== gameState.lastUpdatedMinute) {
