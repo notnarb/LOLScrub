@@ -1,15 +1,20 @@
 @import "colors";
 @import "mixins";
 #navbar {
-	width: 240px;
+	width: 200px;
 	box-sizing: border-box;
 	background-color: @blueGrey600;
 	color: white;
-	@media (min-width: 768px) {
+	@media (min-width: 980px) {
 		.Flex(flex-start, column);
 	}
-	@media (max-width: 768px) {
-		position:absolute;
+	@media (max-width: 980px) {
+		// Note: this would make more sense as 'absolute' but there appears to
+		// be a bug in Chrome 41 for desktop and mobile that in this specific
+		// instance makes the header blink each time there is a change in the
+		// child content (which gets really annoying when the clock updates
+		// every second in the current game screen)
+		position:fixed;
 		top: 56px;
 		bottom: 0px;
 		z-index: 50;

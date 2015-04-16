@@ -5,8 +5,28 @@
 	// Need to absolute position controls
 	position: relative;
 	.Flex();
+	@media (max-width: 800px) {
+		.Flex(flex-start, column);
+		.teamSeparator {
+			display: none;
+		}
+		.team {
+			width: 100%;
+			max-width: 450px !important;
+		}
+		.my.team {
+			order: 2;
+		}
+		
+	}
+	@media (max-width: 400px) {
+		.bottom {
+			width: 50% !important;
+		}
+	}
 	.gameControlsContainer {
 		position: absolute;
+		top: 440px;
 		left: 10%;
 		right: 10%;
 		text-align: center;
@@ -100,63 +120,89 @@
 
 		}
 	}
+	.teamSeparator {
+		width: 1px;
+		// 5 cards * 88px (champ card height)
+		height: 440px;
+		background-color: @grey500;
+	}
 	.team {
 		// can grow, can't shrink
 		.FlexChild(0, 1, 0);
 		&.my {
 			.Flex(flex-start, column);
+			// name needs to offset by picture size for 'my' team
+			.champCard .name {
+				padding-right: 72px;
+			}
 		}
 		&.enemy {
 			.Flex(flex-start, column, stretch, flex-end);
+			// name needs to be offset by picture size for enemy team
+			.champCard .name {
+				padding-left: 72px;
+			}
 		}
 		max-width: 50%;
-		margin-top: 48px;
+		// margin-top: 48px;
 	}
 
 	.champCard {
-		margin: 8px;
 		padding: 8px;
-		width: 256px;
-		max-width: 256px;
-		.zdepth2();
+		// below navbar
+		z-index: 0;
 		background-color: @grey200;
-		// stretch on cross axis (i.e 100% width in this instance)
-		.Flex(flex-start, column, stretch, space-around);
-		.top {
-			.FlexChild();
-			.Flex();
-			.champPic {
-				// can't grow, can't shrink
-				.FlexChild(0, 0, 0);
-				height: 56px;
-				width: 56px;
-				img {
-					height: 100%;
-					width: 100%;
-				}
+		width: 100%;
+		box-sizing: border-box;
+		position: relative;
+		.FlexChild();
+		
+		.Flex();
+		.name {
+			// Position absolute at the top of the champ card.  Add 72 px
+			// padding to the right so it is centered as if the champ pic was
+			// not there
+			font-size: 13px;
+			font-weight: 600;
+			line-height: 16px;
+			text-decoration: underline;
+			position: absolute;
+			// padding-right: 72px;
+			// note: padding to account for picture is added in team block above
+			text-align: center;
+			width: 100%;
+			box-sizing: border-box;
+		}
+		.champPic {
+			// can't grow, can't shrink
+			.FlexChild(0, 0, 0);
+			margin-top: 4px;
+			height: 64px;
+			width: 64px;
+			img {
+				height: 100%;
+				width: 100%;
 			}
-			.stats {
-				.FlexChild();
-				text-align: center;
-				.name {
-					font-size: 13px;
-					font-weight: 600;
-					line-height: 16px;
-					text-decoration: underline;
-				}
-				.currentOdds {
-					font-size: 28px;
-					line-height: 32px;
-					
-				}
+		}
+		.stats {
+			// can grow, can shrink
+			margin-top: 16px;
+			.FlexChild();
+			text-align: center;
+			.currentOdds {
+				font-size: 28px;
+				line-height: 32px;
+				
 			}
 		}
 		.bottom {
-			.FlexChild();
-			margin-top: 8px;
+			// can't grow, can't shrink
+			.FlexChild(0,0,0);
+			margin-top: 16px;
 			overflow: hidden;
 			height: 56px;
 			position: relative;
+			width: 256px;
 			.chartContainer {
 				// Create a container for the chart that will cut off the left
 				// 10 pixels and the bottom 4 pixels while still allowing it to
