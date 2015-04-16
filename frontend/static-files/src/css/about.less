@@ -1,23 +1,32 @@
 @import "colors";
 @import "mixins";
 #aboutPage {
-	padding: 16px;
-	box-sizing: border-box;
-	width: 80%;
-	max-width: 650px;
-	// take up all available width of parent
-	.FlexChild(0,1,0);
-	.Flex(flex-start, column);
-	p {
-		.FlexChild(0, 0, 0);
-		text-align: center;
-	}
-	.spacer {
-		// spacer div, can grow, can't shrink
-		.FlexChild(0, 1, 0)
-	}
-	.disclaimer {
-		color: @grey600;
+	position: relative;
+	overflow-x: auto;
+	// take up available space of parent
+	.FlexChild();
+	.aboutPageFrame {
+		position:absolute;
+		left: 0;
+		right: 0;
+		top: 0;
+		bottom: 0;
+		padding: 16px;
+		box-sizing: border-box;
+		// take up all available width of parent.  Children center themselves
+		.Flex(flex-start, column, stretch, center);
+		p {
+			.FlexChild(0, 0, 0);
+			text-align: center;
+			max-width: 700px;
+		}
+		.spacer {
+			// spacer div, can grow, can't shrink
+			.FlexChild(0, 1, 0)
+		}
+		.disclaimer {
+			color: @grey600;
+		}
 	}
 	
 }

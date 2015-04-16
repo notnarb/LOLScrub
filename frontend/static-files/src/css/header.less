@@ -41,6 +41,7 @@
 		font-weight: 600;
 		line-height: @headerHeight;
 	}
+
 	.userInfo {
 		color: black;
 		// Can't grow, can't shrink
@@ -53,6 +54,7 @@
 			vertical-align: top;
 		}
 		input {
+			width: 140px;
 			display: inline-block;
 			box-sizing: border-box;
 			padding: 2px 4px;
@@ -76,6 +78,32 @@
 				color: white;
 			}
 		}
+		@media (max-width: 400px) {
+			.name {
+				font-size: 12px;
+				white-space: nowrap;
+				// TODO: this could take on a flex shrink property and be the
+				// only item that shrinks in the whole header flexbox
+				
+				// overflow: hidden;
+				// text-overflow: ellipsis;
+			}
+			.button  {
+				padding-left: 4px;
+				padding-right: 4px;
+			}
+			.button.login {
+				// It's certainly not the most intuitive but mobile users can
+				// just hit enter.  
+				display: none;
+			}
+			.button.logout {
+				margin-left: 0;
+				padding-left: 0;
+				padding-right: 0;
+			}
+		}
+		
 	}
 
 }

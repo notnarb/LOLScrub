@@ -3,6 +3,7 @@
  */
 var currentGame = require('./currentGame');
 var aboutPageTemplate = require('../tmpl/about.hbs');
+var champStats = require('./champStats'); 
 // Main content container
 var content;
 
@@ -29,3 +30,7 @@ module.exports.currentGame = function () {
 	content.html(currentGame.render());
 };
 
+
+module.exports.champStats = function () {
+	content.html(champStats.render());
+};

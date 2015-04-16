@@ -35,6 +35,7 @@
                   <img src="{{champSprite champId}}"/>
               </div>
           </div>
+          {{#unless @last}}<div class="champSpacerContainer"><div class="champSpacer"></div></div>{{/unless}}
       {{/each}}
     </div>
     <div class="teamSeparator"></div>
@@ -60,6 +61,7 @@
                 </div>
             </div>
         </div>
+        {{#unless @last}}<div class="champSpacerContainer"><div class="champSpacer"></div></div>{{/unless}}
       {{/each}}
     </div>
 </div>

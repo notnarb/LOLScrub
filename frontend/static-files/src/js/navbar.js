@@ -17,7 +17,7 @@ $('body').on('click', '#navbar', function (event) {
 	// If you click outside of an action or you click a disabled action, don't do anything
 	if (!actionTarget.length || actionTarget.hasClass('disabled')) {
 		return;
-	};
+	}
 	var data = actionTarget.data();
 
 	switch(data.action) {
@@ -28,6 +28,10 @@ $('body').on('click', '#navbar', function (event) {
 	case 'loadAboutPage':
 		content.aboutScreen();
 		setActive('aboutPage');
+		break;
+	case 'loadChampStats':
+		content.champStats();
+		setActive('champStats');
 		break;
 	default:
 		alert('Not yet implemented');

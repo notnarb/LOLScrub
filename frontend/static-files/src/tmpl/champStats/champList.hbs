@@ -1,0 +1,13 @@
+<div id='champStatsResults'>
+  {{! Takes an array of champ IDs }}
+  {{#each champList}}
+    <div class="champItem" data-action="profileCard" data-champ-id="{{this}}">
+      <div class="champPic" title="{{champName this}}">
+        <img src="{{champSprite this}}"/>
+      </div>
+      <div class="champInfo">
+        <div class="name">{{champName this}}</div>
+      </div>
+    </div>
+  {{/each}}
+</div>

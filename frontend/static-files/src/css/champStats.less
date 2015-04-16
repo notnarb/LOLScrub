@@ -1,0 +1,62 @@
+@import "colors";
+@import "mixins";
+
+@filterHeight: 48px;
+
+#champStats {
+	position: relative;
+	// grow to fill available space
+	.FlexChild();
+	overflow-x: auto;
+	#champStatsFilter {
+		height: @filterHeight;
+		box-sizing: border-box;
+		border-bottom: 1px solid @grey400;
+		.champStatsInput {
+			background-color: @grey200;
+			margin-left: 8px;
+			margin-top: 12px;
+			height: 24px;
+			width: 200px;
+			box-sizing: border-box;
+			padding: 4px;
+			border: 1px solid @grey400;
+			border-radius: 2px;
+		}
+	}
+	#champStatsResults {
+		// Necessary afaik to not stretch parent to the size of the content
+		position: absolute;
+		left: 0;
+		right:0;
+		top: 56px;		 //filter height + 8px
+		// use defaults + add in wrap property and space around
+		.Flex(space-around, row, stretch, felx-start, wrap);
+		.champItem {
+			// can't grow, can't shrink
+			.FlexChild(0,0,0);
+			margin: 2px;
+			font-size: 0;		//stupid inline blocks
+			background-color: @blueGrey800;
+			cursor: pointer;
+			&:hover {
+				background-color: @blueGrey600;
+			}
+			.champPic {
+				img {
+					width: 96px;
+					height: 96px;
+				}
+			}
+			.champInfo {
+				text-align: center;
+				margin-left: 4px;
+				.name {
+					font-size: 13px;
+					line-height: 16px;
+					color: white;
+				}
+			}
+		}
+	}
+}
