@@ -20,7 +20,10 @@ champIDs = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26
 def computeSoloKillOddsFromRawData():
     print("Computing Solo Kill odds from Raw Data");
     rawDataCollection = db.killsPerTimeSlice
+    while(rawDataCollection.count() < 1):
+        time.sleep(60)
     OutputCollection = db.SoloKillPercentageOdds
+    # ToDo: this is bad practice! But since we aren't running as daemon we don't care
     OutputCollection.drop()
     #Timeline = numpy.array([-1]*50);
     MapChampOdds = []
