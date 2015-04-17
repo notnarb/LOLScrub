@@ -235,12 +235,6 @@ function getKsOddsData () {
 		var response = results[0];
 		var responseBody = results[1];
 		if (response.statusCode === 200) {
-			Object.keys(responseBody).forEach(function (key) {
-				// TODO: at some point the format of the KsOddsData should
-				// probably get changed...  In the meantime convert each data
-				// point to a whole number
-				responseBody[key] = Math.round(responseBody[key] * 100);
-			});
 			fs.writeFileAsync('/var/www/cache/ksoddsagainst', JSON.stringify(responseBody)).then(function () {
 				console.log('wrote kill steal data');
 			}); 

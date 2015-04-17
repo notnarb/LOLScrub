@@ -16,11 +16,11 @@ module.exports = function(grunt) {
         },
         watch : {
             js : {
-                tasks : ['browserify'],//, 'browserify:communicationsLayer'],
+                tasks : ['browserify'],
                 files : [
-					'src/js/*.js',
+					'src/js/*.js', // Note: this will re-run each time the vendor folder changes but that doesnt seem, too bad
 					'src/js/**/*.js',
-					'src/tmpl/*.hbs',
+					'src/tmpl/**/*.hbs',
 				]
             },
 			vendor : {

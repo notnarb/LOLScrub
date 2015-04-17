@@ -59,7 +59,7 @@ function setActive (tab) {
 		}
 		newActive.addClass('active');
 	}
-};
+}
 
 module.exports.setActive = setActive;
 
@@ -86,8 +86,8 @@ module.exports.toggle = toggle;
  */
 module.exports.render = function () {
 	var navItems = [ {
-		text: "Landing Page",
-		title: "Find out about the app",
+		text: "Home",
+		title: "",
 		action: "loadLandingPage",
 		cssClass: "landingPage"
 	},{

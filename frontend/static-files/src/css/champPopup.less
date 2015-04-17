@@ -1,0 +1,108 @@
+@import "mixins";
+@import "colors";
+.champPopup {
+	max-width: 840px;
+	// center it
+	margin:  64px auto;
+	// If edge-to-edge width wise, treat it as if it is full screen
+	@media (max-width: 840px) {
+		margin-top: 0px;
+		margin-bottom: 0px;
+	}
+	.header{
+		background-color: @blueGrey300;
+		color: white;
+		padding: 8px;
+		.Flex();
+		.image {
+			// can't grow, can't shrink
+			.FlexChild(0,0,0);
+			img {
+				width: 80px;
+				height: 80px;
+			}
+			display: inline-block;
+		}
+		.name {
+			// can grow, can shrink
+			.FlexChild(0,1,1);
+			font-size: 42px; 
+			line-height: 80px;
+			white-space: nowrap;
+			overflow: hidden;
+			text-overflow: ellipsis;
+			margin: 0px 8px;
+		}
+		.closeButton {
+			// can't grow, can't shrink
+			.FlexChild(0,0,0);
+			line-height: 80px;
+			font-size: 42px;
+			font-weight: 600;
+			margin-right: 8px;
+			cursor: pointer;
+			&:hover {
+				color: @grey200;
+			}
+		}
+	}
+	.tabs {
+		background-color: @blueGrey200;
+		color: white;
+		font-size: 0;
+		.tab {
+			display: inline-block;
+			font-size: 16px;
+			line-height: 32px;
+			width: 33%;
+			text-align: center;
+			position: relative;
+			cursor: pointer;
+			&:hover {
+				color: @grey200;
+			}
+			&.active {
+				cursor: default;
+				&:hover {
+					color: white;
+				}
+				&:before {
+					content: " ";
+					position: absolute;
+					background-color: @yellow800;
+					height: 2px;
+					left: 0;
+					right: 0;
+					bottom: 1px;
+				}
+			}
+		}
+	}
+	#champPopupContent {
+		background-color: @grey800;
+		.Flex(space-around, row, stretch, flex-start, wrap);
+		.champCard {
+			// can't grow, can't shrink
+			.FlexChild(0,0,0);
+			.Flex();
+			// Chart will cause card to get too big.  Limit height of card to 64px
+			height: 64px;
+			// minimum amount of space around each card
+			margin: 2px;
+			background-color: white;
+			.champPic {
+				//can't grow, can't shrink
+				.FlexChild(0,0,0);
+				img {
+					height: 64px;
+					width: 64px;
+				}
+				
+			}
+			.bottom {
+				height: 60px
+			}
+
+		}
+	}
+}

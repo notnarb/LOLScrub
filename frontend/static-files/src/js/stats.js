@@ -38,7 +38,6 @@ module.exports.loadOdds = function () {
  * @param timestamp - Minute mark
  */
 module.exports.getOddsByTimestamp = function (yourChampId, theirChampId, timestamp) {
-	// lol, TODO:
 	var key = [yourChampId, theirChampId].join("-");
 	return soloKillOddsMap[key][timestamp];
 };
@@ -64,8 +63,8 @@ module.exports.getOddsArray = function (yourChampId, theirChampId) {
  * Given a matchup between two champions and a timestamp, get the odds of them stealing your WELL DESERVED kills
  */
 module.exports.getKsOddsByTimestamp = function (yourChampId, theirChampId, timestamp) {
-	var key = [yourChampId, theirChampId, timestamp].join("-");
-	return ksOddsMap[key];
+	var key = [yourChampId, theirChampId].join("-");
+	return ksOddsMap[key][timestamp];
 };
 
 
@@ -73,23 +72,10 @@ module.exports.getKsOddsByTimestamp = function (yourChampId, theirChampId, times
  * Returns an array containing the  killsteal odds at each minute mark for a champ
  */
 module.exports.getKsOddsArray = function (yourChampId, theirChampId) {
+	var key = [yourChampId, theirChampId].join("-");
 	var retval = [];
-	var keyPrefix = [yourChampId, theirChampId,""].join("-");
-
 	for (var i = 0; i < 50; i++) {
-		var val = ksOddsMap[keyPrefix + i];
-		if (!val) {
-			// if there isn't a value for this time, get the data entered for
-			// the last value. NOTE: this may cause a chain of equal data points
-			// if there are a lot of undefined values in a row.
-			if (i >= 1) {
-				val = retval[retval.length - 1];
-			} else {
-				// if this is the first value, assume it's 0 I guess
-				val = 0;
-			}
-		}
-		retval.push(val);
+		retval.push(ksOddsMap[key][i]);
 	}
 	return retval;
 };

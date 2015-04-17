@@ -1,0 +1,15 @@
+<div id="champPopupContent" class="onevone">
+  {{#each champList}}
+    <div class="champCard">
+      <div class="champPic" title="{{champName champId}}">
+        <img src="{{champSprite champId}}"/>
+      </div>
+      <div class="bottom">
+        <div class="chartContainer">
+          <div data-chart-marker class="chartMarker"></div>
+          <canvas class="chart" width="200px" height="60px" data-chart-odds data-my-champ="{{../champId}}" data-their-champ="{{champId}}"></canvas>
+        </div>
+      </div>
+    </div>
+  {{/each}}
+</div>

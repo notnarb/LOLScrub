@@ -6,7 +6,7 @@ var Promise = require('bluebird');
 var userInfo = require('./userInfo');
 var champs = require('./champs.js');
 var stats = require('./stats.js');
-
+var charts = require('./charts.js');
 // var currentGameTemplate = require('../tmpl/currentGame.hbs');
 var notInGameTemplate = require('../tmpl/currentGame/notInGame.hbs');
 var inGameTemplate = require('../tmpl/currentGame/inGame.hbs');
@@ -245,7 +245,7 @@ function renderInGameScreen () {
 function fillInData() {
 	stats.loadOdds().then(function () {
 		fillInPercents();
-		fillInCharts();
+		charts.fillInCharts(container);
 	});
 }
 
@@ -279,70 +279,6 @@ function fillInPercents () {
 	});
 
 }
-
-/**
- * finds all chart containers and fills them in with charts
- * TODO: currently fails to create charts if container is not currently rendered on the page
- */
-function fillInCharts () {
-	container.find('[data-chart-odds]').each(function () {
-		var element = $(this);
-		var data = element.data();
-		var myChamp = data.myChamp;
-		var theirChamp = data.theirChamp;
-		var odds = stats.getOddsArray(myChamp, theirChamp);
-		console.log(odds);
-		// get canvas
-		var ctx = this.getContext("2d");
-		var chartData = {
-			labels: ['Minute 0', 'Minute 1','Minute 2','Minute 3','Minute 4','Minute 5','Minute 6','Minute 7','Minute 8','Minute 9','Minute 10','Minute 11','Minute 12','Minute 13','Minute 14','Minute 15','Minute 16','Minute 17','Minute 18','Minute 19','Minute 20','Minute 21','Minute 22','Minute 23','Minute 24','Minute 25','Minute 26','Minute 27','Minute 28','Minute 29'], //I used a macro, I swear
-			datasets: [{
-				label: "Odds",
-				data: odds,
-				fillColor: "rgba(63,81,181,0.2)", //indigo500
-				strokeColor: "rgba(63,81,181,1)"
-			}]
-		};
-		var chart = new Chart(ctx).Line(chartData, chartOptions);
-	});
-
-	container.find('[data-chart-ks-odds]').each(function () {
-		var element = $(this);
-		var data = element.data();
-		var myChamp = data.myChamp;
-		var theirChamp = data.theirChamp;
-		var odds = stats.getKsOddsArray(myChamp, theirChamp);
-		console.log(odds);
-		// get canvas
-		var ctx = this.getContext("2d");
-		var chartData = {
-			labels: ['Minute 0', 'Minute 1','Minute 2','Minute 3','Minute 4','Minute 5','Minute 6','Minute 7','Minute 8','Minute 9','Minute 10','Minute 11','Minute 12','Minute 13','Minute 14','Minute 15','Minute 16','Minute 17','Minute 18','Minute 19','Minute 20','Minute 21','Minute 22','Minute 23','Minute 24','Minute 25','Minute 26','Minute 27','Minute 28','Minute 29','Minute 29'], //I used a macro, I swear
-			datasets: [{
-				label: "Odds",
-				data: odds,
-				fillColor: "rgba(156,39,176,0.2)", //purple500
-				strokeColor: "rgba(156,39,176,1)"
-			}]
-		};
-		var chart = new Chart(ctx).Line(chartData, chartOptions);
-	});
-}
-
-
-var chartOptions = {
-	animation: false,
-	scaleShowLabels: false, //dont waste space on vertical labels
-	scaleOverride: true,	//Explicit y axis
-	scaleSteps: 2,
-	scaleStepWidth: 50,	    //2 steps at 50% each
-	scaleStartValue: 0,
-	pointDot: false,
-	scaleFontSize: 0,
-	pointHitDetectionRadius: 1,
-	datasetStrokeWidth: 1,
-	responsive: true
-};
-
 
 
 /**

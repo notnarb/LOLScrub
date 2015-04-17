@@ -1,0 +1,17 @@
+<div class="champPopup">
+  <div class="header">
+    <div class="image">
+      <img src="{{champSprite champId}}"/>
+    </div>
+    <div class="name">
+      {{champName champId}}
+    </div>
+    <div class="closeButton" data-action="closePopup">&times;</div>
+  </div>
+  <div class="tabs">
+    <div class="tab" data-action="statsTab">Stats</div>
+    <div class="tab" data-action="1v1Tab">One vs One</div>
+    <div class="tab" data-action="ksTab">Kill Steals</div>
+  </div>
+  <div id="champPopupContent"></div> {{!to be replaced after the page is rendered}}
+</div>
