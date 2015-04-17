@@ -15,40 +15,38 @@
   </div>
   <div class="my team">
       {{#each myTeam}}
-        <div class="champCard">
-          <div class="top">
-            <div class="champPic" title="{{champName champId}}">
-              <img src="{{champSprite champId}}"/>
-            </div>
-            <div class="stats">
+          <div class="champCard">
               <div class="name">{{name}}</div>
-              <div class="currentOdds">{{updatingOdds ../myChampId champId ../startTime}}%</div>
-              <div class="itemSuggestions">
-                <div class="item"></div>
-                <div class="item"></div>
-                <div class="item"></div>
+              <div class="bottom">
+                  <div class="chartContainer">
+                      <div data-chart-marker class="chartMarker"></div>
+                      <canvas class="chart" height="60px" data-chart-ks-odds data-my-champ="{{../myChampId}}" data-their-champ="{{champId}}"></canvas>
+                  </div>
               </div>
-            </div>
+              <div class="stats">
+                  <div class="currentOdds">{{updatingKSOdds ../myChampId champId ../startTime}}%</div>
+                  <div class="itemSuggestions">
+                      <div class="item"></div>
+                      <div class="item"></div>
+                      <div class="item"></div>
+                  </div>
+              </div>
+              <div class="champPic" title="{{champName champId}}">
+                  <img src="{{champSprite champId}}"/>
+              </div>
           </div>
-          <div class="bottom">
-            <div class="chartContainer">
-              <div data-chart-marker class="chartMarker"></div>
-              <canvas class="chart" height="60px" data-chart-ks-odds data-my-champ="{{../myChampId}}" data-their-champ="{{champId}}"></canvas> {{!TODO: global pointer to my champ}}
-            </div>
-          </div>
-        </div>
+          {{#unless @last}}<div class="champSpacerContainer"><div class="champSpacer"></div></div>{{/unless}}
       {{/each}}
     </div>
     <div class="teamSeparator"></div>
     <div class="enemy team ">{{!ooooo how I hate them}}
       {{#each enemyTeam}}
         <div class="champCard">
-          <div class="top">
+            <div class="name">{{name}}</div>
             <div class="champPic" title="{{champName champId}}">
               <img src="{{champSprite champId}}"/>
             </div>
             <div class="stats">
-              <div class="name">{{name}}</div>
               <div class="currentOdds">{{updatingOdds ../myChampId champId ../startTime}}%</div>
               <div class="itemSuggestions">
                 <div class="item"></div>
@@ -56,14 +54,14 @@
                 <div class="item"></div>
               </div>
             </div>
-          </div>
-          <div class="bottom">
-            <div class="chartContainer">
-              <div data-chart-marker class="chartMarker"></div>
-              <canvas class="chart" height="60px" data-chart-odds data-my-champ="{{../myChampId}}" data-their-champ="{{champId}}"></canvas> {{!TODO: global pointer to my champ}}
+            <div class="bottom">
+                <div class="chartContainer">
+                    <div data-chart-marker class="chartMarker"></div>
+                    <canvas class="chart" height="60px" data-chart-odds data-my-champ="{{../myChampId}}" data-their-champ="{{champId}}"></canvas>
+                </div>
             </div>
-          </div>
         </div>
+        {{#unless @last}}<div class="champSpacerContainer"><div class="champSpacer"></div></div>{{/unless}}
       {{/each}}
     </div>
 </div>

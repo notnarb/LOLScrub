@@ -40,17 +40,18 @@ body {
 	.Flex(flex-start, row, stretch, stretch);
 	width: 100%;
 	overflow: hidden;
-	padding-right: 8px;
 	box-sizing: border-box;
 	#navbar {
 		// Can't grow, can't shrink (via flexbox at least)
 		.FlexChild(0,0,0);
+		z-index: 20;
 	}
 	#content {
 		// can grow, can't shrink
 		.Flex(flex-start, column, stretch, stretch);
 		.FlexChild(0,1,0);
 		overflow: hidden;
+		z-index: 0;
 	}
 }
 

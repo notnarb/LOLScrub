@@ -3,7 +3,9 @@
  */
 var currentGame = require('./currentGame');
 var aboutPageTemplate = require('../tmpl/about.hbs');
+var champStats = require('./champStats'); 
 var landingPageTemplate = require('../tmpl/landing.hbs');
+
 // Main content container
 var content;
 
@@ -18,9 +20,9 @@ module.exports.render = function () {
 	return content;
 };
 
-module.exports.landingPage = function(){
+module.exports.landingPage = function() {
     content.html(landingPageTemplate({}));
-}
+};
 
 
 module.exports.aboutScreen = function () {
@@ -34,3 +36,7 @@ module.exports.currentGame = function () {
 	content.html(currentGame.render());
 };
 
+
+module.exports.champStats = function () {
+	content.html(champStats.render());
+};
