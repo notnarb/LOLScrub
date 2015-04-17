@@ -104,7 +104,7 @@ mongodb.connect ('mongodb://mongo:27017/urfday',function(err,db){
 
     app.get('/OverallKsRate',function(req,res){
 
-             db.collection('GetOverallKsPerChamp').find().toArray(function(err, docs) {
+             db.collection('GetOverallKSPerChamp').find().toArray(function(err, docs) {
                 if  (err){return console.dir(err);}
                 retval = {};
                 docs.forEach(function(Champion){

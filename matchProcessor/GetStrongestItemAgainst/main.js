@@ -114,7 +114,7 @@ var finalize = function (key,ReducedValue){
     ReducedValue['Lead']=res[3];
 
    for(var build in ReducedValue){
-        if(build == 'MostEffectiveItems' || build == 'ChampId' || build  =='MinuteMark'|| build  =='Lead'|| build  =='VictimId'){
+        if(build == 'MostPopularItems' || build == 'ChampId' || build  =='MinuteMark'|| build  =='Lead'|| build  =='VictimId'){
             continue;
         }
         sortable.push({'build':build,'Gross':ReducedValue[build]['Gross'],'Net':ReducedValue[build]['Net']});
