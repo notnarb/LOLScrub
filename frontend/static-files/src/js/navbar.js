@@ -26,12 +26,10 @@ $('body').on('click', '#navbar', function (event) {
 		setActive('current');
 		break;
 	case 'loadAboutPage':
-		content.aboutScreen();
-		setActive('aboutPage');
+		module.exports.loadAboutPage();
 		break;
 	case 'loadChampStats':
-		content.champStats();
-		setActive('champStats');
+		module.exports.loadChampStats();
 		break;
 	case 'loadLandingPage':
 	    content.landingPage();
@@ -41,6 +39,16 @@ $('body').on('click', '#navbar', function (event) {
 		alert('Not yet implemented');
 	}
 });
+
+module.exports.loadAboutPage = function () {
+	content.aboutScreen();
+	setActive('aboutPage');
+};
+
+module.exports.loadChampStats = function () {
+	content.champStats();
+	setActive('champStats');
+};
 
 /**
  * Sets the specified tab as 'active'
@@ -96,12 +104,12 @@ module.exports.render = function () {
 		action: "loadCurrentGame",
 		cssClass: "current"
 	}, {
-		text: "Champion stats",
+		text: "Champion Stats",
 		title: "Find out what champ is the best at facilitating your s1ck kills",
 		action: "loadChampStats",
 		cssClass: "champStats"
 	}, {
-		text: "Pentakill leaderboard",
+		text: "Pentakill Leaderboard",
 		title: "What champs can get you those pentakills you deserver",
 		action: "loadPentasPage",
 		cssClass: "pentasPage"
