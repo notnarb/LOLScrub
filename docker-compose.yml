@@ -4,16 +4,16 @@ urf2015db:
     - /mnt/urfdb/:/data/db/
 riotambassador:
   build: riotAmbassador/
-matchgetter:
-  build: matchGetter/
-  links:
-    - riotambassador
-    - urf2015db:mongo
-matchlookup:
-  build: matchLookup/
-  links:
-    - riotambassador
-    - urf2015db:mongo
+#matchgetter:
+#  build: matchGetter/
+#  links:
+#    - riotambassador
+#    - urf2015db:mongo
+#matchlookup:
+#  build: matchLookup/
+#  links:
+#    - riotambassador
+#    - urf2015db:mongo
 summonerlookup:
   build: summonerLookup/
   volumes:
@@ -38,6 +38,10 @@ oddscollector:
     - urf2015db:mongo
 oddscalculator:
   build: matchProcessor/ConvertKillDataToOdds/
+  links:
+    - urf2015db:mongo
+smoothksdata:
+  build: matchProcessor/SmoothKSData/
   links:
     - urf2015db:mongo
 avgitemcollector:

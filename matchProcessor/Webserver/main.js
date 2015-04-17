@@ -274,14 +274,14 @@ mongodb.connect ('mongodb://mongo:27017/urfday',function(err,db){
 
     app.get('/KsOddsAgainst',function(req,res){
 
-            db.collection('KsChancePerChamp').find().toArray(function(err, docs) {
+            db.collection('KsChancePerChampSmooth').find().toArray(function(err, docs) {
                 if  (err){return console.dir(err);}
                 retval = {};
                // console.log(docs[0]);
                 docs.forEach(function(matchup){
-                    retval[matchup['_id']] = matchup.value.Odds;
+                    retval[[matchup.ChampId, matchup.KSChampId].join("-")] = matchup.Minute;
 
-                    //console.log(matchup);
+                    console.log(matchup);
 
                 });
 
@@ -308,6 +308,7 @@ mongodb.connect ('mongodb://mongo:27017/urfday',function(err,db){
     */
 
 
+    // test via curl -i -X GET  http://localhost:8000/SoloKillPercentageOdds/1/101
     app.listen(PORT);
     console.log('Listening on port ' + PORT + '...');
 
