@@ -1,13 +1,16 @@
 @import "mixins";
 @import "colors";
+
+@grid1: 100px;
+@grid2: 200px;
+
 .champPopup {
 	max-width: 840px;
 	// center it
 	margin:  64px auto;
 	// If edge-to-edge width wise, treat it as if it is full screen
 	@media (max-width: 840px) {
-		margin-top: 0px;
-		margin-bottom: 0px;
+		margin: 0;
 	}
 	.header{
 		background-color: @blueGrey300;
@@ -80,6 +83,46 @@
 	}
 	#champPopupContent {
 		background-color: @grey800;
+		&.statsPage {
+			padding-top: 16px;
+			background-color: white;
+			.title {
+				font-size: 18px;
+				line-height: 20px;
+			}
+			.description {
+				font-size: 11px;
+				line-height: 16px;
+			}
+			.multikills {
+				.FlexChild(0,1,0,@grid2);
+				margin: 4px;
+				.zdepth2();
+				background-color: @cyan700;
+				color: white;
+				text-align: center;
+				padding: 8px;
+				.label {
+					font-size: 13px;
+					line-height: 16px;
+				}
+				.value {
+					font-size: 20px;
+					line-height: 24px;
+				}
+			}
+			.overallSolo {
+				padding: 8px;
+				.FlexChild(0,1,0, @grid1);
+				text-align: center;
+				.value {
+					font-size: 64px;
+					line-height: 80px;
+				}
+				
+			}
+			
+		}
 		.Flex(space-around, row, stretch, flex-start, wrap);
 		.champCard {
 			// can't grow, can't shrink

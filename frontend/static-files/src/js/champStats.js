@@ -13,6 +13,7 @@ var champPopupTemplate = require('../tmpl/champPopup.hbs');
 
 var onevoneTemplate = require('../tmpl/champPopup/onevone.hbs');
 var ksTemplate = require('../tmpl/champPopup/ks.hbs');
+var statsTemplate = require('../tmpl/champPopup/stats.hbs');
 
 var container = null;
 var previousSearch = "";
@@ -44,7 +45,7 @@ $('body').on('click', '#champStats,.champPopup', function (event) {
 			alignTop: true,
 			showCloseBtn: false
 		});
-		render1v1Tab();
+		renderStatsTab();
 		break;
 	case 'statsTab':
 		renderStatsTab();
@@ -112,7 +113,26 @@ function getPopupContentArea () {
 function renderStatsTab () {
 	setActiveTab('stats');
 	var contentArea = getPopupContentArea();
-	contentArea.empty();	
+	var newContentArea = $(statsTemplate({}));
+	contentArea.replaceWith(newContentArea);
+	stats.getChampStats(currentChampId).then(function (stats) {
+		var overallSoloKillRatingCommentary = "GARBAGE";
+		if (stats.overallSoloKillRating > 50) {
+			overallSoloKillRatingCommentary = "Pssshh";
+		}
+		if (stats.overallSoloKillRating > 63) {
+			overallSoloKillRatingCommentary = "YEEAA BUDDY";
+		}
+		var newNewContentArea = $(statsTemplate({
+			doubleKills: (stats.DoubleRate / 100),
+			tripleKills: (stats.TripleRate / 100),
+			quadraKills: (stats.QuadraRate / 100),
+			pentaKills: (stats.PentaRate / 100),
+			overallSoloKillRating: stats.overallSoloKillRating + "%",
+			overallSoloKillRatingCommentary: overallSoloKillRatingCommentary
+		}));
+		newContentArea.replaceWith(newNewContentArea);
+	});
 }
 // TODO: figure out a standardized way to refer to this
 function render1v1Tab () {

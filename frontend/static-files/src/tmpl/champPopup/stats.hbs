@@ -1,0 +1,18 @@
+<div id="champPopupContent" class="statsPage">
+  <div class="multikills">
+    <div class="title">Multi-kills</div>
+    <div class="description">Average number of multikills per 100 games</div>
+    <div class="data">
+      <div class="label">Double Kills</div><div class="value">{{loadingOr doubleKills}}</div>
+      <div class="label">Triple Kills</div><div class="value">{{loadingOr tripleKills}}</div>
+      <div class="label">Quadra Kills</div><div class="value">{{loadingOr quadraKills}}</div>
+      <div class="label">PENTA Kills</div><div class="value">{{loadingOr pentaKills}}</div>
+    </div>
+  </div>                        {{!end multikills}}
+  <div class="overallSolo">
+    <div class="title">Overall 1v1 Win rate</div>
+    <div class="description">Chance to win in a fight with no assists</div>
+    <div class="value">{{loadingOr overallSoloKillRating}}</div>
+    <div class="commentary">{{loadingOr overallSoloKillRatingCommentary}}</div>
+  </div>
+</div>                          {{!end champPopupContent}}

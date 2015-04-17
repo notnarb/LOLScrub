@@ -7,6 +7,8 @@ var helpers = require('./helpers');
 var soloKillOddsMap = null;
 var ksOddsMap = null;
 
+var champStatsMap = {};
+
 // Array of promises that once all are resolved, should provide enough data for graphing
 var oddsLoaded = [];
 
@@ -81,3 +83,23 @@ module.exports.getKsOddsArray = function (yourChampId, theirChampId) {
 };
 
 window.getKsOddsArray = module.exports.getKsOddsArray;
+
+
+/**
+ * Get the stats for a specific champion
+ * @param {ChampId} champId - the champ to lookup
+ */
+module.exports.getChampStats = function (champId) {
+	if (!champId) {
+		throw "Missing champ id";
+	}
+	if (champStatsMap[champId]) {
+		return Promise.resolve(champStatsMap[champId]);
+	}
+	return helpers.get('/app/champstats/' + champId).then(function (results) {
+		champStatsMap[champId] = results;
+		return champStatsMap[champId];
+	});
+};
+
+window.getChampStats = module.exports.getChampStats;

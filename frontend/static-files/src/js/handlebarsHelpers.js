@@ -58,3 +58,13 @@ Handlebars.registerHelper("updatingKSOdds", function (yourChampId, theirChampId,
 	var element = '<span class="LS_KS_update_odds" ' +  dataString + '></span>';
 	return new Handlebars.SafeString(element);
 });
+
+/**
+ * feeds in a value.  If the value is undefined, a loading icon is shown instead
+ */
+Handlebars.registerHelper("loadingOr", function (value) {
+	if (value === undefined) {
+		return new Handlebars.SafeString('<span class="loading">Loading...</span>');
+	}
+	return value;
+});

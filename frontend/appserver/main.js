@@ -7,6 +7,8 @@ var redis = require('redis');
 var connectTimeout = require('connect-timeout');
 var fs = require('fs');
 
+var champStats = require('./champStats');
+
 Promise.promisifyAll(redis);
 Promise.promisifyAll(fs);
 
@@ -48,6 +50,7 @@ app.use(connectTimeout('10s'));
 
 app.use(ErrorHandler);
 
+app.use('/champstats', champStats.router);
 
 /**
  * Checks the backend for the summoner info
