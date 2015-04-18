@@ -1,7 +1,7 @@
 <div id="champPopupContent" class="statsPage">
   <div class="multikills">
     <div class="title">Multi-kills</div>
-    <div class="description">Average number of multikills per 100 games</div>
+    <div class="description">Number of multikills per 100 games</div>
     <div class="data">
       <div class="label">Double Kills</div><div class="value">{{loadingOr doubleKills}}</div>
       <div class="label">Triple Kills</div><div class="value">{{loadingOr tripleKills}}</div>
@@ -14,5 +14,30 @@
     <div class="description">Chance to win in a fight with no assists</div>
     <div class="value">{{loadingOr overallSoloKillRating}}</div>
     <div class="commentary">{{loadingOr overallSoloKillRatingCommentary}}</div>
+  </div>
+  <div class="soloOddsOverTime">
+    <div class="title">1v1 Win rate over time</div>
+    <div class="description">Chance to win in a fight with no assists over the first thirty minutes</div>
+    <div class="bottom">
+      <div class="chartContainer">
+        <canvas class="chart" height="100px" data-chart-vs-odds-average></canvas>
+      </div>
+    </div>
+  </div>
+  <div class="ksOddsOverTime">
+    <div class="title">Chance to secure a well earned kill</div>
+    <div class="description">Average success rate in stealing/securing kills over any teammate</div>
+    {{!While probably cute, I'm gonna leave this out for now}}
+    {{! <div class="rolePicker"> }}
+    {{!   <select id="ksRolePicker"> }}
+    {{!     <option value="me">Played by me</option> }}
+    {{!     <option value="team">Played by my team</option> }}
+    {{!   </select> }}
+    {{! </div> }}
+    <div class="bottom">
+      <div class="chartContainer">
+        <canvas class="chart" height="100px" data-chart-ks-odds-average></canvas>
+      </div>
+    </div>
   </div>
 </div>                          {{!end champPopupContent}}

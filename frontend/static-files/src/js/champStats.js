@@ -132,6 +132,23 @@ function renderStatsTab () {
 			overallSoloKillRatingCommentary: overallSoloKillRatingCommentary
 		}));
 		newContentArea.replaceWith(newNewContentArea);
+		var soloOdds = [];
+		var ksOdds = [];
+		for (var i = 1; i < 32; i++) {
+			soloOdds.push(stats.totalVsSolo[i]);
+			ksOdds.push(stats.ksOddsTotal[i]);
+		}
+		charts.fillInCustom($('[data-chart-ks-odds-average]'), ksOdds,{color: [156,39,176]}); //purple500
+		charts.fillInCustom($('[data-chart-vs-odds-average]'), soloOdds,{color: [63,81,181]}); //indigo500
+		// cute but leaving it out for now
+		// newNewContentArea.find('#ksRolePicker').on('change', function (){
+		// 	var role = $(this).val();
+		// 	if (role === "team") {
+		// 		newNewContentArea.find('.ksOddsOverTime .title').html("% chance to steal my kills OMG");
+		// 	} else {
+		// 		newNewContentArea.find('.ksOddsOverTime .title').html("Chance to secure a well earned kill");
+		// 	}
+		// });
 	});
 }
 // TODO: figure out a standardized way to refer to this

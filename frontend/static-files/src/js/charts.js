@@ -68,7 +68,34 @@ module.exports.fillInCharts = function (container) {
 		});
 	});
 };
-
+/**
+ * Fill in a single chart with a graph (x axis of 30 minutes)
+ * @param {jquery} chart - jquery selector for the chart to fill in
+ * @param {Array} data - the 30 minute array to fill in
+ * @param {Object} options 
+ * @param {Array} options.color - array of 3 rgb values.  e.g. [156, 39, 176]
+ */
+module.exports.fillInCustom = function (chart, data, options) {
+	options = options || {};
+	var ctx = chart.get(0).getContext("2d");
+	var color;
+	if (options.color) {
+		color = options.color.join(",");
+	} else {
+		color = "156,39,176";	//default to purple
+	}
+	
+	var chartData = {
+		labels: ['Minute 0', 'Minute 1','Minute 2','Minute 3','Minute 4','Minute 5','Minute 6','Minute 7','Minute 8','Minute 9','Minute 10','Minute 11','Minute 12','Minute 13','Minute 14','Minute 15','Minute 16','Minute 17','Minute 18','Minute 19','Minute 20','Minute 21','Minute 22','Minute 23','Minute 24','Minute 25','Minute 26','Minute 27','Minute 28','Minute 29','Minute 29'], //I used a macro, I swear
+		datasets: [{
+			data: data,
+			fillColor: "rgba(" + color + ",0.2)", //purple500
+			strokeColor: "rgba(" + color + ",1)"
+		}]
+	};
+	var createdChart = new Chart(ctx).Line(chartData, chartOptions);
+	
+};
 
 var chartOptions = {
 	animation: false,
