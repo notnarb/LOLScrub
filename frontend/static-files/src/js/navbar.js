@@ -24,16 +24,28 @@ $('body').on('click', '#navbar', function (event) {
 	case 'loadCurrentGame':
 		content.currentGame();
 		setActive('current');
+		if (isFloated()) {
+			toggle();
+		}
 		break;
 	case 'loadAboutPage':
 		module.exports.loadAboutPage();
+		if (isFloated()) {
+			toggle();
+		}
 		break;
 	case 'loadChampStats':
 		module.exports.loadChampStats();
+		if (isFloated()) {
+			toggle();
+		}
 		break;
 	case 'loadLandingPage':
 	    content.landingPage();
 	    setActive('landingPage');
+		if (isFloated()) {
+			toggle();
+		}
 	    break;
 	default:
 		alert('Not yet implemented');
@@ -49,6 +61,14 @@ module.exports.loadChampStats = function () {
 	content.champStats();
 	setActive('champStats');
 };
+
+
+/**
+ * @returns {Boolean} - returns true if the navbar is floated (from the screen size breakpoint), false otherwise
+ */
+function isFloated () {
+	return $('#navbar').css('position') === 'fixed';
+}
 
 /**
  * Sets the specified tab as 'active'
