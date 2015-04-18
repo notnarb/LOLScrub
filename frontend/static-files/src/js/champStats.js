@@ -35,17 +35,7 @@ $('body').on('click', '#champStats,.champPopup', function (event) {
 
 	switch (data.action) {
 	case 'profileCard':
-		currentChampId = data.champId;
-		$.magnificPopup.open({
-			items: {
-				src: champPopupTemplate({
-					champId: currentChampId
-				})
-			},
-			alignTop: true,
-			showCloseBtn: false
-		});
-		renderStatsTab();
+		openProfileCard(data.champId);
 		break;
 	case 'statsTab':
 		renderStatsTab();
@@ -63,6 +53,28 @@ $('body').on('click', '#champStats,.champPopup', function (event) {
 		console.log('unknown action', data.action);
 	}
 });
+
+/**
+ * Opens the profile card for the specified champion
+ */
+function openProfileCard (champId) {
+	if (!champId) {
+		throw "Missing champ id";
+	}
+	currentChampId = champId;
+	$.magnificPopup.open({
+		items: {
+			src: champPopupTemplate({
+				champId: currentChampId
+			})
+		},
+		alignTop: true,
+		showCloseBtn: false
+	});
+	renderStatsTab();
+
+}
+module.exports.openProfileCard = openProfileCard;
 
 $('body').on('keyup paste', '#champStatsFilter', function (event) {
 	var element = $(event.target);

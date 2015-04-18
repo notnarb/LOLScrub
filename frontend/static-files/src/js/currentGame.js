@@ -7,6 +7,7 @@ var userInfo = require('./userInfo');
 var champs = require('./champs.js');
 var stats = require('./stats.js');
 var charts = require('./charts.js');
+var champStats = require('./champStats.js');
 // var currentGameTemplate = require('../tmpl/currentGame.hbs');
 var notInGameTemplate = require('../tmpl/currentGame/notInGame.hbs');
 var inGameTemplate = require('../tmpl/currentGame/inGame.hbs');
@@ -109,6 +110,11 @@ $('body').on('click', '#currentGame', function (event) {
 		updateClock();
 		updateChartMarkers();
 		fillInPercents();
+		break;
+	case 'openProfile':
+		if (data.id) {
+			champStats.openProfileCard(data.id);
+		}
 		break;
 	default:
 		console.log('unknown action:', data.action);

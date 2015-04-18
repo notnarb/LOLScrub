@@ -39,7 +39,7 @@
                   </div>
                   {{/unless}}
               </div>
-              <div class="champPic" title="{{champName champId}}">
+              <div class="champPic" title="{{champName champId}}" data-action="openProfile" data-id="{{champId}}">
                   <img src="{{champSprite champId}}"/>
               </div>
           </div>
@@ -55,7 +55,7 @@
       {{#each enemyTeam}}
         <div class="champCard">
             <div class="name">{{name}}</div>
-            <div class="champPic" title="{{champName champId}}">
+            <div class="champPic" title="{{champName champId}}" data-action="openProfile" data-id="{{champId}}">
               <img src="{{champSprite champId}}"/>
             </div>
             <div class="stats">
