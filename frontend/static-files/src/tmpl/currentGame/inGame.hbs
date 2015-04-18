@@ -14,22 +14,30 @@
     </div>
   </div>
   <div class="my team">
+    <div class="teamHeader">
+      <div class="chartHeader">KillSteal % chance over time</div>
+      <div class="currentHeader">Current killsteal danger</div>
+    </div>
       {{#each myTeam}}
-          <div class="champCard">
+          <div class="champCard {{#if isMe}}isMe{{/if}}">
               <div class="name">{{name}}</div>
               <div class="bottom">
+                {{#unless isMe}}
                   <div class="chartContainer">
                       <div data-chart-marker class="chartMarker"></div>
-                      <canvas class="chart" height="60px" data-chart-ks-odds data-my-champ="{{../myChampId}}" data-their-champ="{{champId}}"></canvas>
+                      <canvas class="chart" height="60px" data-chart-ks-odds data-my-champ="{{../../myChampId}}" data-their-champ="{{champId}}"></canvas>
                   </div>
+                  {{/unless}}
               </div>
               <div class="stats">
-                  <div class="currentOdds">{{updatingKSOdds ../myChampId champId ../startTime}}%</div>
+                {{#unless isMe}}
+                <div class="currentOdds">{{updatingKSOdds ../../myChampId champId ../../startTime}}%</div>
                   <div class="itemSuggestions">
                       <div class="item"></div>
                       <div class="item"></div>
                       <div class="item"></div>
                   </div>
+                  {{/unless}}
               </div>
               <div class="champPic" title="{{champName champId}}">
                   <img src="{{champSprite champId}}"/>
@@ -40,6 +48,10 @@
     </div>
     <div class="teamSeparator"></div>
     <div class="enemy team ">{{!ooooo how I hate them}}
+      <div class="teamHeader">
+        <div class="currentHeader">Current 1v1 odds</div>
+        <div class="chartHeader">1v1 odds over time</div>
+      </div>
       {{#each enemyTeam}}
         <div class="champCard">
             <div class="name">{{name}}</div>

@@ -1,17 +1,27 @@
 <div id="currentGame" class="notInGame">
-  <div class="msgbox">
-    <div class="message">{{msg}}</div>
-    <div class="buttonRow">
-      {{#if loggedIn}}
-        {{#if isChecking}}
-          <div class="button raised disabled checkNow">{{checkButtonText}}</div>
-        {{else}}
-          <div class="button raised checkNow" data-action="checkForGame">{{checkButtonText}}</div>
-        {{/if}}
-      {{else}}
-        <div class="button disabled checkNow" data-action="checkForGame" title="You must enter a summoner name to check for a game">{{checkButtonText}}</div>
-      {{/if}}
-      <div class="button raised simulateGame" data-action="simulateGame">Simulate game</div>
+  <div class="notInGameFrame">
+    <div class="msgbox">
+      <div class="message">{{msg}}</div>
+      <div class="buttonRow">
+        {{! {{#if loggedIn}\} }}
+        {{!   {{#if isChecking}\} }}
+        {{!     <div class="button raised disabled checkNow">{{checkButtonText}\}</div> }}
+        {{!   {{else}\} }}
+        {{!     <div class="button raised checkNow" data-action="checkForGame">{{checkButtonText}\}</div> }}
+        {{!   {{/if}\} }}
+        {{! {{else}\} }}
+          <div class="button disabled checkNow" data-action="checkForGame" title="Urf is currently disabled">{{checkButtonText}}</div>
+        {{! {{/if}\} }}
+        <div class="button raised simulateGame" data-action="simulateGame">Simulate game</div>
+      </div>
+    </div>
+    <div class="about">
+      <div class="title">What is this mode?</div>
+      <div class="description">This mode lets you track your current game of League of Legends in real time and provide you with matchup stats for each opponent based on historic matchup data for the current in-game time.</div>
+      <div class="imageContainer"><a href="/images/lolscrubhelp1.png"><img src="/images/lolscrubhelp1.png"/></a></div>
+      <div class="description">The opposing team isn't the only thing getting in the way of you getting a KDR worth writing home about, so in addition to providing you with stats based on the enemy team, we also give you estimates on how likely each of your team members are to steal your hard earned kills!</div>
+      <div class="imageContainer"><a href="/images/lolscrubhelp2.png"><img src="/images/lolscrubhelp2.png"/></a></div>
+      <div class="description">Since League of Legends is a game often played in full screen, we realized that we can't always expect people to be able to view a desktop web page while browsing.  To solve this, we have tailored LOLScrub to specifically be able to fit on an assortment of modern tablets and smartphones to provide this data to those who don't have a traditional second screen.  Try it out!</div>
     </div>
   </div>
 </div>

@@ -109,11 +109,6 @@ module.exports.render = function () {
 		action: "loadChampStats",
 		cssClass: "champStats"
 	}, {
-		text: "Pentakill Leaderboard",
-		title: "What champs can get you those pentakills you deserver",
-		action: "loadPentasPage",
-		cssClass: "pentasPage"
-	}, {
 		text: "About",
 		title: "Learn more about the technologies and people behind LOLScrub",
 		action: "loadAboutPage",

@@ -17,16 +17,22 @@
 		.my.team {
 			order: 2;
 		}
+		.gameControlsContainer {
+			top: 970px !important;
+		}
 		
 	}
 	@media (max-width: 400px) {
 		.bottom {
 			width: 50% !important;
 		}
+		.chartHeader {
+			width: 50% !important;
+		}
 	}
 	.gameControlsContainer {
 		position: absolute;
-		top: 440px;
+		top: 476px;
 		left: 10%;
 		right: 10%;
 		text-align: center;
@@ -123,7 +129,7 @@
 	.teamSeparator {
 		width: 1px;
 		// 5 cards * 88px (champ card height)
-		height: 440px;
+		height: 476px;
 		background-color: @grey500;
 	}
 	.team {
@@ -145,6 +151,40 @@
 		}
 		max-width: 50%;
 		// margin-top: 48px;
+	}
+
+	.enemy.team .teamHeader {
+		.chartHeader {
+			color: @indigo500;
+			text-align: right;
+		}
+		.currentHeader {
+			text-align: center;;
+		}
+		
+	}
+	.my.team .teamHeader {
+		.chartHeader {
+			text-align: left;
+		}
+		.currentHeader {
+			text-align: center;
+		}
+	}
+	.teamHeader {
+		.Flex();
+		padding: 8px 8px 7px 8px;
+		border-bottom: 1px solid black;
+		width: 100%;
+		box-sizing: border-box;
+		.chartHeader {
+			.FlexChild(0,0,0);
+			color: @purple500;
+			width: 256px;
+		}
+		.currentHeader {
+			.FlexChild(0,1,0);
+		}
 	}
 	.champSpacerContainer {
 		width: 100%;
@@ -171,6 +211,15 @@
 		.FlexChild();
 		
 		.Flex();
+		&.isMe {
+			.name:after {
+				content: "(You!)";
+				color: @purple500;
+				position: absolute;
+				margin-left: 8px;
+			}
+		}
+		
 		.name {
 			// Position absolute at the top of the champ card.  Add 72 px
 			// padding to the right so it is centered as if the champ pic was
@@ -241,11 +290,44 @@
 }
 
 #currentGame.notInGame {
-	.Flex(center, row, stretch, center);
+	position: relative;
+	.notInGameFrame {
+		position: absolute;
+		left:0;
+		right:0;
+		top:0;
+		padding: 16px;
+	}
+	.title {
+		font-size: 32px;
+		line-height: 48px;
+		margin-bottom: 8px;
+		max-width: 480px;
+		margin-left: auto;
+		margin-right: auto;
+	}
+	.about {
+		margin-top: 16px;
+	}
+	.description {
+		max-width: 480px;
+		margin-left: auto;
+		margin-right: auto;
+		margin-bottom: 8px;
+	}
+	.imageContainer {
+		text-align: center;
+		img {
+			cursor: pointer;
+			height: 100px;
+			width: auto;
+		}
+	}
 	.msgbox {
 		margin-top: 80px;
-		// can grow, can't shrink
-		.FlexChild(0, 1, 0);
+		margin-left: auto;
+		margin-right: auto;
+
 		max-width :480px;
 		background-color: @grey200;
 		padding: 16px;
@@ -267,6 +349,11 @@
 				}
 				&.simulateGame {
 					background-color: white;
+				}
+				&.disabled {
+					// color: @grey700;
+					// font-style: italic;
+					text-decoration: line-through;
 				}
 			}
 		}

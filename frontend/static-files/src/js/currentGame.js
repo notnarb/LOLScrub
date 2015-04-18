@@ -145,7 +145,8 @@ function renderNotInGameScreen () {
 	}
 	var isChecking = checkingInGame;
 	var checkButtonText = isChecking ? 'Loading...' : 'Check now';
-	var msg = loggedIn ? "No game loaded" : "No game loaded.  You must log in as a summoner to check for your current game";
+	// var msg = loggedIn ? "No game loaded" : "No game loaded.  You must log in as a summoner to check for your current game";
+	var msg = "Urf is currently disabled.  To see a demo of the current game tracker, please select simulate game below to generate a randomized game of URF";
 	var state = {
 		msg: msg,
 		loggedIn: loggedIn,
@@ -155,16 +156,10 @@ function renderNotInGameScreen () {
 	var toRender = $(notInGameTemplate(state));
 	container.replaceWith(toRender);
 	container = toRender;
+	setTimeout(function () {
+		$('a').magnificPopup({type: 'image'});
+	}, 300);					//for some reason I have to delay this to get it to work
 }
-
-// var simulatedGame = {
-// 	participants: [
-// 		{team: 100, champId: 1, name: 'chuck'},
-// 		{team: 100, champId: 3, name: 'HotShotGG'},
-// 		{team: 200, champId: 45, name: 'Mew2king'},
-// 		{team: 200, champId: 54, name: 'Day9'}
-// 	]
-// };
 
 function generateName () {
 	var prefixes = ['The Great', '', 'Not', 'Very', 'Original'];
@@ -234,6 +229,7 @@ function renderInGameScreen () {
 	state.enemyTeam = enemyTeam;
 	// TODO: probably not 'me'
 	state.myChampId = myTeam[0].champId;
+	myTeam[0].isMe = true;
 	state.startTime = game.startTime;
 
 	var toRender = $(inGameTemplate(state));
