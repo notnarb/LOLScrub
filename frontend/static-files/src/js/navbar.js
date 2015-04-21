@@ -97,11 +97,11 @@ function toggle () {
 		return currentAnimation;
 	}
 	if (navbar.attr('data-shrunk')) {
-		currentAnimation = $.Velocity(navbar, 'reverse').then(function () {
+		currentAnimation = $.Velocity(navbar, 'reverse', '200ms').then(function () {
 			navbar.attr('data-shrunk', false);
 		});
 	} else {
-		currentAnimation = $.Velocity(navbar, {width:0}).then(function () {
+		currentAnimation = $.Velocity(navbar, {width:0}, '200ms').then(function () {
 			navbar.attr('data-shrunk', true);
 		});
 	}

@@ -7,6 +7,9 @@ var helpers = require('./helpers');
 var soloKillOddsMap = null;
 var ksOddsMap = null;
 
+// True if it is believed that all champ stats have been loaded
+var champStatsLoaded = false;
+
 var champStatsMap = {};
 
 // Array of promises that once all are resolved, should provide enough data for graphing
@@ -103,3 +106,20 @@ module.exports.getChampStats = function (champId) {
 };
 
 window.getChampStats = module.exports.getChampStats;
+
+/**
+ * @returns {Promise} - resolves once all champ stats have been obtained.
+ * resolves with champ stats map
+ */
+module.exports.getAllChampStats = function () {
+	if (champStatsLoaded) {
+		return Promise.resolve(champStatsMap);
+	}
+	return helpers.get('/app/champstats/').then(function (results) {
+		Object.keys(results).forEach(function (champId) {
+			champStatsMap[champId] = results[champId];
+		});
+		champStatsLoaded = true;
+		return champStatsMap;
+	});
+};

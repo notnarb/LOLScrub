@@ -47,10 +47,11 @@ body {
 		z-index: 20;
 	}
 	#content {
-		// can grow, can't shrink
+		// can grow, can shrink (since navbar can take away width)
 		.Flex(flex-start, column, stretch, stretch);
-		.FlexChild(0,1,0);
+		.FlexChild(0,1,1);
 		z-index: 0;
+		width: 100%;
 	}
 }
 

@@ -49,6 +49,15 @@ $('body').on('click', '#champStats,.champPopup', function (event) {
 	case 'closePopup':
 		$.magnificPopup.close();
 		break;
+	case 'sortPentas':
+		renderPentaKillSorted();
+		break;
+	case 'sortName':
+		renderNameSorted();
+		break;
+	case 'sort1v1':
+		render1v1Sorted();
+		break;
 	default:
 		console.log('unknown action', data.action);
 	}
@@ -84,7 +93,7 @@ $('body').on('keyup paste', '#champStatsFilter', function (event) {
 	}
 	var query = filterSearch(element.val());
 	if (query !== previousSearch) {
-		renderList(query);
+		renderSearched(query);
 		previousSearch = query;
 	}
 });
@@ -199,7 +208,7 @@ function render () {
 	if (!container) {
 		container = $(champStats({}));
 		container.find('#champStatsFilter').replaceWith(champFilter({}));
-		renderList();
+		renderSearched();
 	}
 	return container;
 }
@@ -216,14 +225,66 @@ function filterSearch (query) {
 }
 
 /**
+ * Renders the champ list with the array of champ Id's specified
+ * @param {Array(ChampId)} champList - sorted list of champs to render
+ */
+function renderList (champList) {
+	container.find('#champStatsResults').replaceWith(champListTemplate({
+		champList: champList
+	}));
+}
+
+/**
  * Render the search results
  * @param {String} [query=""] - query to look up.  Leave blank to ignore
  */
-function renderList (query) {
+function renderSearched (query) {
 	var lookupList = champs.lookup(query);
-	container.find('#champStatsResults').replaceWith(champListTemplate({
-		champList: lookupList
-	}));
+	renderList(lookupList);
+	// Unactivate all sort buttons when a search is performed
+	container.find('#champStatsFilter').find(".button.active").removeClass("active");
+}
+
+/**
+ * Render the list of champions by number of pentakills descending
+ */
+function renderPentaKillSorted () {
+	// Since this requires an async call
+	container.find('#champStatsResults').html("Loading...");
+	stats.getAllChampStats().then(function (champStatsMap) {
+		var sortedList = champs.getIdList().sort(function (a, b) {
+			return champStatsMap[b].PentaRate - champStatsMap[a].PentaRate;
+		});
+		renderList(sortedList);
+		container.find('#champStatsFilter').replaceWith(champFilter({penta: true}));
+	});
+}
+
+/**
+ * Render the list of champions by name ascending
+ */
+function renderNameSorted () {
+	var nameMap = champs.getNameMap();
+	var sortedList = Object.keys(nameMap).sort().map(function (champName) {
+		return nameMap[champName];
+	});
+	renderList(sortedList);
+	container.find('#champStatsFilter').replaceWith(champFilter({name: true}));
+}
+
+/**
+ * Render the list of champions by 1v1 odds descending
+ */
+function render1v1Sorted () {
+	// Since this requires an async call
+	container.find('#champStatsResults').html("Loading...");
+	stats.getAllChampStats().then(function (champStatsMap) {
+		var sortedList = champs.getIdList().sort(function (a, b) {
+			return champStatsMap[b].overallSoloKillRating - champStatsMap[a].overallSoloKillRating;
+		});
+		renderList(sortedList);
+		container.find('#champStatsFilter').replaceWith(champFilter({onevone: true}));
+	});
 }
 
 module.exports.render = render;

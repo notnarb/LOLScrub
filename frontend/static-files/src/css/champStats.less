@@ -1,35 +1,52 @@
 @import "colors";
 @import "mixins";
 
-@filterHeight: 48px;
-
 #champStats {
 	position: relative;
 	// grow to fill available space
 	.FlexChild();
 	overflow-x: auto;
 	#champStatsFilter {
-		height: @filterHeight;
 		box-sizing: border-box;
 		border-bottom: 1px solid @grey400;
+		padding: 8px;
+		div {
+			display: inline-block;
+			vertical-align: top;
+		}
 		.champStatsInput {
 			background-color: @grey200;
-			margin-left: 8px;
-			margin-top: 12px;
 			height: 24px;
-			width: 200px;
+			width: 224px;		//224 currently looks best with the 3 buttons
 			box-sizing: border-box;
 			padding: 4px;
 			border: 1px solid @grey400;
+			margin-right: 8px;
+			margin-top: 8px;
 			border-radius: 2px;
+		}
+		.sortGroup {
+			line-height: 24px;
+			height: 24px;
+			margin-top: 8px;
+			.label {
+				margin-right: 4px;
+			}
+			.button {
+				// space on either side
+				margin: 0px 2px;
+				// TODO: this color scheme is somewhat unfortunate...
+				background-color: @blueGrey100;
+				&.active {
+					box-shadow: 0 0 0 0 !important;
+					background-color: @cyan300;
+					color: white;
+					cursor: default !important;
+				}
+			}
 		}
 	}
 	#champStatsResults {
-		// Necessary afaik to not stretch parent to the size of the content
-		position: absolute;
-		left: 0;
-		right:0;
-		top: 56px;		 //filter height + 8px
 		// use defaults + add in wrap property and space around
 		.Flex(space-around, row, stretch, felx-start, wrap);
 		.champItem {

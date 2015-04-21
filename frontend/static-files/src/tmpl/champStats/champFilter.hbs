@@ -1,3 +1,9 @@
 <div id='champStatsFilter'>
   <input placeholder='Search' class='champStatsInput'/>
+  <div class="sortGroup">
+    <div class="label">Sort by:</div>
+    <div class="raised button penta {{#if penta}}active{{/if}}" data-action="sortPentas">PENTAS</div>
+    <div class="raised button onevone {{#if onevone}}active{{/if}}" data-action="sort1v1">1v1</div>
+    <div class="raised button name {{#if name}}active{{/if}}" data-action="sortName">Name</div>
+  </div>
 </div>
