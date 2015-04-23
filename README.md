@@ -164,4 +164,4 @@ point in a game, the historic “Mode” item build at any given minute
 
 LOLScrub is comprised entirely of docker containers in a microservice-ish architecture to help keep consistent production environments between developers.  There are two different sets of containers: frontend (as seen in the /frontend folder) and backend (everything not in the /frontend folder).  The front end caches the data gathered by the backend to allow it to be served to end users.  This design decision was made because of spare hardware available at the developers houses which made for more a more powerful database system than would be reasonably affordable to have in hosted environments.  The downside of hosting hardware at the developers houses is there is relatively low bandwidth available (couldn't have web traffic accidentally DDOSing us when trying to play league!) so front end nodes are set up to act as light app servers but more importantly act as CDNs that in the future could load balanced if necessary.
 
-![LOLScrub infrastructure](i.imgur.com/qVddgKn.png)
+![LOLScrub infrastructure](http://i.imgur.com/qVddgKn.png)
