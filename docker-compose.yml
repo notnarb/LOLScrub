@@ -4,12 +4,12 @@ urf2015db:
     - /mnt/urfdb/:/data/db/
 riotambassador:
   build: riotAmbassador/
-#matchgetter:
+# matchgetter:
 #  build: matchGetter/
 #  links:
 #    - riotambassador
 #    - urf2015db:mongo
-#matchlookup:
+# matchlookup:
 #  build: matchLookup/
 #  links:
 #    - riotambassador
@@ -26,60 +26,61 @@ backendambassador:
   links:
     - summonerlookup
     - staticgetter
+    - webserver
   ports:
     - "8000:8000"
-killcollector:
-  build: matchProcessor/ProcessMatchesIntoKillCollection/
-  links:
-    - urf2015db:mongo
-oddscollector:
-  build: matchProcessor/GetMatchupOdds/
-  links:
-    - urf2015db:mongo
-oddscalculator:
-  build: matchProcessor/ConvertKillDataToOdds/
-  links:
-    - urf2015db:mongo
-smoothksdata:
-  build: matchProcessor/SmoothKSData/
-  links:
-    - urf2015db:mongo
-avgitemcollector:
-  build: matchProcessor/GetAverageItemBuild/
-  links:
-    - urf2015db:mongo
-kscollector:
-  build: matchProcessor/GetKSPerChamp/
-  links:
-    - urf2015db:mongo
-multikillcollector:
-  build: matchProcessor/GetMultiKills/
-  links:
-    - urf2015db:mongo
-overallksoddscollector:
-  build: matchProcessor/GetOverallKSPerChamp/
-  links:
-    - urf2015db:mongo
-overallksgraphcollector:
-  build: matchProcessor/GetOverallKSPerChampTime/
-  links:
-    - urf2015db:mongo
-overallmatchupoddscollector:
-  build: matchProcessor/GetOverallMatchupOdds/
-  links:
-    - urf2015db:mongo
-overallmatchupgraphcollector:
-  build: matchProcessor/GetOverallMatchupOddsTime/
-  links:
-    - urf2015db:mongo
-snowballcollector:
-  build: matchProcessor/GetSnowballRating/
-  links:
-    - urf2015db:mongo
-itemmatchupcollector:
-  build: matchProcessor/GetStrongestItemAgainst/
-  links:
-    - urf2015db:mongo
+# killcollector:
+#   build: matchProcessor/ProcessMatchesIntoKillCollection/
+#   links:
+#     - urf2015db:mongo
+# oddscollector:
+#   build: matchProcessor/GetMatchupOdds/
+#   links:
+#     - urf2015db:mongo
+# oddscalculator:
+#   build: matchProcessor/ConvertKillDataToOdds/
+#   links:
+#     - urf2015db:mongo
+# smoothksdata:
+#   build: matchProcessor/SmoothKSData/
+#   links:
+#     - urf2015db:mongo
+# avgitemcollector:
+#   build: matchProcessor/GetAverageItemBuild/
+#   links:
+#     - urf2015db:mongo
+# kscollector:
+#   build: matchProcessor/GetKSPerChamp/
+#   links:
+#     - urf2015db:mongo
+# multikillcollector:
+#   build: matchProcessor/GetMultiKills/
+#   links:
+#     - urf2015db:mongo
+# overallksoddscollector:
+#   build: matchProcessor/GetOverallKSPerChamp/
+#   links:
+#     - urf2015db:mongo
+# overallksgraphcollector:
+#   build: matchProcessor/GetOverallKSPerChampTime/
+#   links:
+#     - urf2015db:mongo
+# overallmatchupoddscollector:
+#   build: matchProcessor/GetOverallMatchupOdds/
+#   links:
+#     - urf2015db:mongo
+# overallmatchupgraphcollector:
+#   build: matchProcessor/GetOverallMatchupOddsTime/
+#   links:
+#     - urf2015db:mongo
+# snowballcollector:
+#   build: matchProcessor/GetSnowballRating/
+#   links:
+#     - urf2015db:mongo
+# itemmatchupcollector:
+#   build: matchProcessor/GetStrongestItemAgainst/
+#   links:
+#     - urf2015db:mongo
 webserver:
   build: matchProcessor/Webserver/
   links:
