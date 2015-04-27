@@ -97,7 +97,8 @@ Key.prototype.waitForNextTick = function () {
  */
 Key.prototype.consumeNextQueueItem = function () {
 	if (!this.highPriorityQueue.length && !this.lowPriorityQueue.length) {
-		console.log('Queue empty, wasted tick', Date.now());
+		// console.log('Queue empty, wasted tick', Date.now());
+		process.stdout.write('.');
 		return;
 	}
 	var action;
@@ -213,7 +214,7 @@ var highPriorityServer = http.createServer(function (req, res) {
 });
 highPriorityServer.listen(HIGH_PRIORITY_PORT);
 
-console.log('listening');
+console.log('listening for requests on low priority port', LOW_PRIORITY_PORT, 'and high priority port', HIGH_PRIORITY_PORT);
 
 
 /**
@@ -227,5 +228,5 @@ var diagnosticServer = http.createServer(function (req, res) {
 	res.end(response);
 });
 
-console.log('listening on diagnostic server');
+console.log('listening on diagnostic port', DIAGNOSTIC_PORT);
 diagnosticServer.listen(DIAGNOSTIC_PORT);
