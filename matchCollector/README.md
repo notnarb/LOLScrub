@@ -14,6 +14,10 @@ Listens for HTTP requests to store new match ID's and stores found items in the 
 
 Gets items from the new-match-id queue, looks them up via the riot API, then stores them in the new-match-data queue
 
-## MatchDataProcessor
+## SeedGetter
+
+Listens for HTTP requests which, when made, triggers it to lookup the current season's match data
+
+## MatchDataStorer
 
 Doesn't exist yet, but will store found matches into a permanent database for querying and extract found summoner IDs an announce them to the summoner id storer endpoint (which also doesn't exist)

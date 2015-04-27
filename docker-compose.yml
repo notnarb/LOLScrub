@@ -1,11 +1,20 @@
 # Temporary dev-environment setup.  These need to get cleaned up
+matchdb:
+  image: mongo
+  volumes:
+    - cache/matchdb:/data/db
 riotambassador:
   build: riotAmbassador/
+# RabbitMQ instance for storing messaging related to matches
 matchcollectorqueue:
   build: matchCollector/rabbitmq/
   hostname: matchcollectorqueue
   volumes:
-    - matchCollector/queue:/var/lib/rabbitmq/
+    - cache/matchCollectorQueue:/var/lib/rabbitmq/
+  # management port SHOULD NOT BE EXPOSED TO OUTSIDE WORLD
+  ports:
+    - "15672:15672"
+# Endpoint to send new match IDs to
 matchcollectorgetter:
   build: matchCollector/matchGetter/
   environment:
@@ -14,8 +23,20 @@ matchcollectorgetter:
     - matchCollector/matchGetter/src:/home/app/src/
   links:
     - matchcollectorqueue:matchcollectorqueue
-  # ports:
-  #   - "8002:8000"
+  ports:
+    - "8002:8000"
+# Collector of the riot seed data
+matchcollectorseedgetter:
+  build: matchCollector/seedGetter/
+  environment:
+    - DEBUG=rabbit-worker
+  links:
+    - matchcollectorqueue:matchcollectorqueue
+  volumes:
+    - matchCollector/seedGetter/src:/home/app/src/
+  ports:
+    - "8003:8000"
+# Looks up new match IDs in the queue up
 matchcollectorlookup:
   build: matchCollector/matchLookup/
   volumes:
