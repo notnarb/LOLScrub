@@ -36,6 +36,16 @@ matchcollectorseedgetter:
     - matchCollector/seedGetter/src:/home/app/src/
   ports:
     - "8003:8000"
+# Stores matches collected from the seed data or otherwise
+matchcollectorstorer:
+  build: matchCollector/matchStorer
+  environment:
+    - DEBUG=rabbit-worker
+  links:
+    - matchcollectorqueue:matchcollectorqueue
+    - matchdb:mongo
+  volumes:
+    - matchCollector/matchStorer/src:/home/app/src/
 # Looks up new match IDs in the queue up
 matchcollectorlookup:
   build: matchCollector/matchLookup/
