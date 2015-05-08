@@ -1,0 +1,8 @@
+{
+	"dependencies": {
+		"bluebird": "^2.9.21",
+		"rabbit-worker": "^0.0.1",
+		"request": "^2.55.0",
+		"mongodb": "^2.0.28"
+	}
+}

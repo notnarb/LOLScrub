@@ -5,12 +5,12 @@ matchdb:
     - cache/matchdb:/data/db
 riotambassador:
   build: riotAmbassador/
-# RabbitMQ instance for storing messaging related to matches
-matchcollectorqueue:
-  build: matchCollector/rabbitmq/
-  hostname: matchcollectorqueue
+# General, shared rabbitmq instance
+rabbitmq:
+  build: rabbitmq/
+  hostname: rabbit1
   volumes:
-    - cache/matchCollectorQueue:/var/lib/rabbitmq/
+    - cache/rabbitmq:/var/lib/rabbitmq/
   # management port SHOULD NOT BE EXPOSED TO OUTSIDE WORLD
   ports:
     - "15672:15672"
@@ -22,7 +22,7 @@ matchcollectorgetter:
   volumes:
     - matchCollector/matchGetter/src:/home/app/src/
   links:
-    - matchcollectorqueue:matchcollectorqueue
+    - rabbitmq:matchcollectorqueue
   ports:
     - "8002:8000"
 # Collector of the riot seed data
@@ -31,7 +31,7 @@ matchcollectorseedgetter:
   environment:
     - DEBUG=rabbit-worker
   links:
-    - matchcollectorqueue:matchcollectorqueue
+    - rabbitmq:matchcollectorqueue
   volumes:
     - matchCollector/seedGetter/src:/home/app/src/
   ports:
@@ -42,7 +42,8 @@ matchcollectorstorer:
   environment:
     - DEBUG=rabbit-worker
   links:
-    - matchcollectorqueue:matchcollectorqueue
+    - rabbitmq:matchcollectorqueue
+    - rabbitmq:summonercollectorqueue
     - matchdb:mongo
   volumes:
     - matchCollector/matchStorer/src:/home/app/src/
@@ -54,5 +55,20 @@ matchcollectorlookup:
   environment:
     - DEBUG=rabbit-worker
   links:
-    - matchcollectorqueue:matchcollectorqueue
+    - rabbitmq:matchcollectorqueue
     - riotambassador:riotambassador
+
+# Summoner collectors
+summonerdb:
+  image: mongo
+  volumes:
+    - cache/summonerdb:/data/db
+summonercollectorstorer:
+  build: summonerCollector/summonerStorer
+  environment:
+    - DEBUG=rabbit-worker
+  links:
+    - rabbitmq:summonercollectorqueue
+    - summonerdb:mongo
+  volumes:
+    - summonerCollector/summonerStorer/src:/home/app/src/

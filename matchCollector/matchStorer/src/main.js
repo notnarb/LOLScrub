@@ -15,6 +15,10 @@ Promise.promisifyAll(mongodb.Collection.prototype);
 var MATCH_RABBIT_SERVER = 'matchcollectorqueue';
 var matchesToSaveRoutingKey = 'new-match-data';
 
+var SUMMONER_RABBIT_SERVER = 'summonercollectorqueue';
+var summonersToSaveRoutingKey = 'new-summoner';
+var summonerTasker;
+
 var DBSTRING = 'mongodb://mongo:27017/matchcollector';
 var COLLECTION_NAME = 'matchData';
 
@@ -35,6 +39,7 @@ function storeMatch (msg, ack) {
 		ack();
 		return;
 	}
+	console.log('storing match', matchData.matchId);
 	Promise.all([saveMatchToDb(matchData), saveParticipants(matchData)])
 		.then(function () {
 			console.log('match', matchData.matchID, 'saved successfully');
@@ -75,7 +80,10 @@ function saveParticipants(matchData) {
 	matchData.participantIdentities.forEach(function (participant) {
 		// console.log(participant.player);
 		if (participant.player) {
-			foundPlayers.push(participant.player.summonerId);
+			foundPlayers.push({
+				summonerId: participant.player.summonerId,
+				matchId: matchData.matchId
+			});
 		} else {
 			console.warn('Missing player information for participant', participant);
 		}
@@ -85,8 +93,33 @@ function saveParticipants(matchData) {
 		return Promise.resolve();
 	}
 
-	// TODO:
-	return Promise.reject('Publishing participants not implemented yet');
+	return Promise.all(foundPlayers.map(storeParticipant));
+}
+
+/**
+ * @desc Stores a single participant, retrying if it fails to save.
+ * @param {Object} participantInfo
+ * @param {Integer} participantInfo.summonerId - the summoner ID to store
+ * @param {Integer} participantInfo.matchId - the match ID of the match the summoner participated in
+ * @returns {Promise} - resolves once the participant has been stored
+ */
+function storeParticipant (participantInfo) {
+	if (!summonerTasker) {
+		return Promise.reject(new Error('Missing summonerTasker'));
+	}
+	return new Promise(function (resolve, reject) {
+		var payload = JSON.stringify(participantInfo);
+		var attempt = function () {
+			try {
+				summonerTasker.publish(payload);
+				resolve();
+			} catch(error) {
+				console.log('Failed to store participant info, retrying in 1 second');
+				setTimeout(attempt, 1000);
+			}
+		};
+		attempt();
+	});
 }
 
 /**
@@ -94,6 +127,10 @@ function saveParticipants(matchData) {
  */
 function initWorker() {
 	var matchDataTasker = new rabbitWorker.Worker(MATCH_RABBIT_SERVER, matchesToSaveRoutingKey, storeMatch);
+}
+
+function initSummonerTasker() {
+	summonerTasker = new rabbitWorker.Tasker(SUMMONER_RABBIT_SERVER, summonersToSaveRoutingKey);
 }
 
 /**
@@ -124,7 +161,7 @@ function initDb() {
 function initCollection () {
 	return db.collection(COLLECTION_NAME).createIndexAsync('matchId', {
 		unique :true,
-		sparse: true			//sparse indexes require that documents have this field
+		sparse: true
 	});
 }
 
@@ -132,6 +169,7 @@ function initCollection () {
  * @desc Orchestrates the initialization of database and mq connections
  */
 function main () {
+	initSummonerTasker();
 	initDb().then(function (foundDb) {
 		db = foundDb;
 		return initCollection();
