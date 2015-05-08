@@ -6,14 +6,22 @@
 var util = require('util');
 var Promise = require('bluebird');
 var request = require('request');
+var mongodb = require('mongodb');
 
+Promise.promisifyAll(mongodb.MongoClient);
+Promise.promisifyAll(mongodb.Collection.prototype);
 Promise.promisifyAll(request);
+
+var DBSTRING = 'mongodb://mongo:27017/matchcollector';
+var COLLECTION_NAME = 'matchData';
+var db;
 
 var rabbitWorker = require('rabbit-worker');
 var RABBITSERVER = 'matchcollectorqueue';
 
 var matchIdRoutingKey = 'new-match-id';
 var matchesToSaveRoutingKey = 'new-match-data';
+var matchIdWorker;
 
 var RIOT_API_SERVER = 'http://riotambassador:8000';
 
@@ -86,40 +94,95 @@ function lookupMatch (msg, ack) {
 		matchId,
 		'?includeTimeline=true'
 	].join("");
-	request.getAsync(requestUrl, {json: true}).then(function (args) {
-		var response = args[0];
-		var body = args[1];
-		if (body.status && body.status.status_code) {
-			riotErrorHandler(body.status.status_code);
-		}
-		if (response.statusCode !== 200) {
-			riotErrorHandler(response.statusCode);
-		}
-		storeMatch(body).then(function (){
+	isNewMatchId(matchId).then(function (isNew) {
+		if (!isNew) {
 			ack();
-		});
-	}).catch(RiotApiError, function (error) {
-		if (error.code === 404) {
-			// ignore matches which give 404 responses
-			console.warn('matchId 404:', matchId, '. Ignoring.');
-			ack();
-		} else if (error.code === 429) {
-			console.log('rate limit exceeded, retrying in 3 seconds');
-			setTimeout(function () {
-				lookupMatch(msg, ack);
-			}, 3000);
 		} else {
-			console.warn('unkown error', error, 'retrying in 10 seconds');
-			setTimeout(function () {
-				lookupMatch(msg, ack);
-			}, 10000);
+			request.getAsync(requestUrl, {json: true}).then(function (args) {
+				var response = args[0];
+				var body = args[1];
+				if (body.status && body.status.status_code) {
+					riotErrorHandler(body.status.status_code);
+				}
+				if (response.statusCode !== 200) {
+					riotErrorHandler(response.statusCode);
+				}
+				storeMatch(body).then(function (){
+					ack();
+				});
+			}).catch(RiotApiError, function (error) {
+				if (error.code === 404) {
+					// ignore matches which give 404 responses
+					console.warn('matchId 404:', matchId, '. Ignoring.');
+					ack();
+				} else if (error.code === 429) {
+					console.log('rate limit exceeded, retrying in 3 seconds');
+					setTimeout(function () {
+						lookupMatch(msg, ack);
+					}, 3000);
+				} else {
+					console.warn('unkown error', error, 'retrying in 10 seconds');
+					setTimeout(function () {
+						lookupMatch(msg, ack);
+					}, 10000);
+				}
+			}).catch(function (error) {
+				console.warn('Failed to perform request', error, 'retrying in 10 seconds');
+				setTimeout(function () {
+					lookupMatch(msg, ack);
+				}, 10000);
+			});
 		}
-	}).catch(function (error) {
-		console.warn('Failed to perform request', error, 'retrying in 10 seconds');
-		setTimeout(function () {
-			lookupMatch(msg, ack);
-		}, 10000);
+	});
+
+}
+function initWorker () {
+	matchIdWorker = new rabbitWorker.Worker(RABBITSERVER, matchIdRoutingKey, lookupMatch);
+}
+
+/**
+ * Connect to the database, retrying on failures.  Uses setTimeout instead of recursive promises to prevent infinitely growing stack trace
+ * @returns {Promise} - resolves with database object once connected to database
+ */
+function initDb() {
+	return new Promise(function (resolve, reject) {
+		var attempt = function () {
+			console.log('Connecting to database');
+			mongodb.MongoClient.connect(DBSTRING, function (err, foundDb) {
+				if (err) {
+					console.warn("Failed to connect to database, retrying in 3 seconds");
+					setTimeout(attempt, 3000);
+				} else {
+					console.log('connected to database');
+					resolve(foundDb);
+				}
+			});
+		};
+		attempt();
 	});
 }
 
-var matchIdWorker = new rabbitWorker.Worker(RABBITSERVER, matchIdRoutingKey, lookupMatch);
+/**
+ * @desc Determines whether or not a match ID is stored or not
+ * @param {String} matchId - the match to check
+ * @returns {Promise} - resolves with a boolean of true if it IS a new match ID, false otherwise
+ */
+function isNewMatchId (matchId) {
+	return db.collection(COLLECTION_NAME).findOneAsync({matchId: parseInt(matchId, 10)}).then(function (doc) {
+		if (doc) {
+			// already exists, false, not a new match ID
+			return false;
+		} else {
+			return true;
+		}
+	});
+}
+
+function main () {
+	initDb().then(function (foundDb) {
+		db = foundDb;
+		initWorker();
+	});
+}
+
+main();

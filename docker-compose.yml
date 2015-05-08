@@ -57,7 +57,8 @@ matchcollectorlookup:
   links:
     - rabbitmq:matchcollectorqueue
     - riotambassador:riotambassador
-
+    - matchdb:mongo
+    
 # Summoner collectors
 summonerdb:
   image: mongo
@@ -72,3 +73,22 @@ summonercollectorstorer:
     - summonerdb:mongo
   volumes:
     - summonerCollector/summonerStorer/src:/home/app/src/
+summonercollectorscheduler:
+  build: summonerCollector/summonerScheduler
+  environment:
+    - DEBUG=rabbit-worker
+  links:
+    - rabbitmq:summonercollectorqueue
+    - summonerdb:mongo
+  volumes:
+    - summonerCollector/summonerScheduler/src:/home/app/src/
+summonercollectormatchlookup:
+  build: summonerCollector/summonerMatchLookup
+  environment:
+    - DEBUG=rabbit-worker
+  links:
+    - rabbitmq:summonercollectorqueue
+    - matchcollectorgetter:matchcollectorgetter
+    - riotambassador:riotambassador
+  volumes:
+    - summonerCollector/summonerMatchLookup/src:/home/app/src/
