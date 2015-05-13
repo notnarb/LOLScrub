@@ -16,12 +16,14 @@ var DBSTRING = 'mongodb://mongo:27017/matchcollector';
 var COLLECTION_NAME = 'matchData';
 var db;
 
+var NUM_WORKERS = process.env.NUM_WORKERS || 1;
+
 var rabbitWorker = require('rabbit-worker');
 var RABBITSERVER = 'matchcollectorqueue';
 
 var matchIdRoutingKey = 'new-match-id';
 var matchesToSaveRoutingKey = 'new-match-data';
-var matchIdWorker;
+var matchIdWorkers = [];
 
 var RIOT_API_SERVER = 'http://riotambassador:8000';
 
@@ -137,7 +139,12 @@ function lookupMatch (msg, ack) {
 
 }
 function initWorker () {
-	matchIdWorker = new rabbitWorker.Worker(RABBITSERVER, matchIdRoutingKey, lookupMatch);
+	var i;
+	for (i = 0; i < NUM_WORKERS; i++) {
+		console.log('created worker');
+		matchIdWorkers.push(new rabbitWorker.Worker(RABBITSERVER, matchIdRoutingKey, lookupMatch));
+	}
+	console.log('created', i, 'workers');
 }
 
 /**

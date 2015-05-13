@@ -11,9 +11,10 @@ Promise.promisifyAll(request);
 
 var rabbitWorker = require('rabbit-worker');
 
+var NUM_WORKERS = process.env.NUM_WORKERS || 1;
 var SUMMONER_RABBIT_SERVER = 'summonercollectorqueue';
 var summonersToScheduleRoutingKey = 'summoner-lookup-scheduler';
-var schedulerWorker;
+var schedulerWorkers = [];
 
 var MATCH_ID_ENDPOINT = "http://matchcollectorgetter:8000/newmatches/";
 var RIOT_API_SERVER = 'http://riotambassador:8000';
@@ -146,7 +147,12 @@ function lookupHistory (msg, ack) {
 }
 
 function initWorker () {
-	schedulerWorker= new rabbitWorker.Worker(SUMMONER_RABBIT_SERVER, summonersToScheduleRoutingKey, lookupHistory);
+	var i;
+	for (i = 0; i < NUM_WORKERS; i++) {
+		schedulerWorkers.push(new rabbitWorker.Worker(SUMMONER_RABBIT_SERVER, summonersToScheduleRoutingKey, lookupHistory));
+		console.log('created worker');
+	}
+	console.log('created', i, 'workers');
 }
 
 

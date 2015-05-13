@@ -54,6 +54,7 @@ matchcollectorlookup:
     - matchCollector/matchLookup/src:/home/app/src/
   environment:
     - DEBUG=rabbit-worker
+    - NUM_WORKERS=5
   links:
     - rabbitmq:matchcollectorqueue
     - riotambassador:riotambassador
@@ -86,6 +87,7 @@ summonercollectormatchlookup:
   build: summonerCollector/summonerMatchLookup
   environment:
     - DEBUG=rabbit-worker
+    - NUM_WORKERS=5
   links:
     - rabbitmq:summonercollectorqueue
     - matchcollectorgetter:matchcollectorgetter
