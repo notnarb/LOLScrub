@@ -41,9 +41,9 @@ function storeSummoner (msg, ack) {
 			$setOnInsert: {
 				lastLookup: 0
 			}
-		}, {upsert: true, j: true, w: 1});
+		}, {upsert: true, w: 1});
 	} else {
-		command = db.collection(COLLECTION_NAME).insertOneAsync({summonerId: summonerId, lastLookup: 0}, {w: 1, j: true});
+		command = db.collection(COLLECTION_NAME).insertOneAsync({summonerId: summonerId, lastLookup: 0}, {w: 1});
 	}
 
 	command.catch(function (error) {

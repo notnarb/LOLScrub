@@ -108,7 +108,8 @@ function lookupHistory (msg, ack) {
 	var requestUrl = [
 		RIOT_API_SERVER,
 		'/api/lol/na/v2.2/matchhistory/',
-		summonerId
+		summonerId,
+		'?rankedQueues=RANKED_SOLO_5x5,RANKED_TEAM_5x5'
 	].join("");
 	request.getAsync(requestUrl, {json: true}).then(function (args) {
 		var response = args[0];

@@ -34,8 +34,8 @@ function storeMatch (msg, ack) {
 	// Let it die without recovery if parsing the message fails
 	var matchData = JSON.parse(msg);
 	// discard urf matches
-	if (matchData.queueType === "URF_5x5") {
-		console.log('Found urf match, skipping...');
+	if (matchData.queueType !== "RANKED_SOLO_5x5" && matchData.queueType !== "RANKED_TEAM_5X5") {
+		console.log('Found non-5x5 ranked game, skipping');
 		ack();
 		return;
 	}
