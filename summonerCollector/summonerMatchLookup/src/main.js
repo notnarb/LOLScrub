@@ -87,10 +87,23 @@ function processHistory (data) {
 		console.log('no matches for summoner, skipping');
 		return Promise.resolve();
 	}
-
-	var idList = matchList.map(function (match) {
+	// discard anything older than two weeks ago
+	var twoWeeksAgo = Date.now() - (1000 * 60 * 60 * 24 * 14);
+	var idList = matchList.filter(function (match) {
+		if (match.matchCreation > twoWeeksAgo) {
+			return true;
+		} else {
+			console.log('Skipping old match:', match.matchId, match.matchCreation, '<', twoWeeksAgo);
+			return false;
+		}
+	}).map(function (match) {
 		return match.matchId;
 	});
+	if (!idList.length) {
+		console.log('no matches for summoner after filtering, skipping');
+		return Promise.resolve();
+	}
+	
 	return sendMatchList(idList);
 }
 
@@ -108,7 +121,8 @@ function lookupHistory (msg, ack) {
 	var requestUrl = [
 		RIOT_API_SERVER,
 		'/api/lol/na/v2.2/matchhistory/',
-		summonerId
+		summonerId,
+		'?rankedQueues=RANKED_SOLO_5x5'
 	].join("");
 	request.getAsync(requestUrl, {json: true}).then(function (args) {
 		var response = args[0];

@@ -6,18 +6,12 @@
 var Promise = require('bluebird');
 var rabbitWorker = require('rabbit-worker');
 var mongodb = require('mongodb');
-var request = require('request');
 
-Promise.promisifyAll(request);
 Promise.promisifyAll(mongodb.MongoClient);
 Promise.promisifyAll(mongodb.Collection.prototype);
 
 var MATCH_RABBIT_SERVER = 'matchcollectorqueue';
-var matchesToSaveRoutingKey = 'new-match-data';
-
-var SUMMONER_RABBIT_SERVER = 'summonercollectorqueue';
-var summonersToSaveRoutingKey = 'new-summoner';
-var summonerTasker;
+var matchesToSaveRoutingKey = 'match-data-to-store';
 
 var DBSTRING = 'mongodb://mongo:27017/matchcollector';
 var COLLECTION_NAME = 'matchData';
@@ -33,14 +27,8 @@ var db;
 function storeMatch (msg, ack) {
 	// Let it die without recovery if parsing the message fails
 	var matchData = JSON.parse(msg);
-	// discard urf matches
-	if (matchData.queueType === "URF_5x5") {
-		console.log('Found urf match, skipping...');
-		ack();
-		return;
-	}
 	console.log('storing match', matchData.matchId);
-	Promise.all([saveMatchToDb(matchData), saveParticipants(matchData)])
+	saveMatchToDb(matchData)
 		.then(function () {
 			console.log('match', matchData.matchID, 'saved successfully');
 			ack();
@@ -71,66 +59,10 @@ function saveMatchToDb (matchData) {
 }
 
 /**
- * @desc Send the list of participants in a match to a summoner consumer
- * @param {Object{ matchData - parsed match data
- * @returns {Promise} - resolves once summoner data has been stored
- */
-function saveParticipants(matchData) {
-	var foundPlayers = [];
-	matchData.participantIdentities.forEach(function (participant) {
-		// console.log(participant.player);
-		if (participant.player) {
-			foundPlayers.push({
-				summonerId: participant.player.summonerId,
-				matchId: matchData.matchId
-			});
-		} else {
-			console.warn('Missing player information for participant', participant);
-		}
-	});
-
-	if (!foundPlayers.length) {
-		return Promise.resolve();
-	}
-
-	return Promise.all(foundPlayers.map(storeParticipant));
-}
-
-/**
- * @desc Stores a single participant, retrying if it fails to save.
- * @param {Object} participantInfo
- * @param {Integer} participantInfo.summonerId - the summoner ID to store
- * @param {Integer} participantInfo.matchId - the match ID of the match the summoner participated in
- * @returns {Promise} - resolves once the participant has been stored
- */
-function storeParticipant (participantInfo) {
-	if (!summonerTasker) {
-		return Promise.reject(new Error('Missing summonerTasker'));
-	}
-	return new Promise(function (resolve, reject) {
-		var payload = JSON.stringify(participantInfo);
-		var attempt = function () {
-			try {
-				summonerTasker.publish(payload);
-				resolve();
-			} catch(error) {
-				console.log('Failed to store participant info, retrying in 1 second');
-				setTimeout(attempt, 1000);
-			}
-		};
-		attempt();
-	});
-}
-
-/**
  * @desc Creates a rabbit worker to start consuming matches from the new match queue
  */
 function initWorker() {
 	var matchDataTasker = new rabbitWorker.Worker(MATCH_RABBIT_SERVER, matchesToSaveRoutingKey, storeMatch);
-}
-
-function initSummonerTasker() {
-	summonerTasker = new rabbitWorker.Tasker(SUMMONER_RABBIT_SERVER, summonersToSaveRoutingKey);
 }
 
 /**
@@ -169,12 +101,13 @@ function initCollection () {
  * @desc Orchestrates the initialization of database and mq connections
  */
 function main () {
-	initSummonerTasker();
 	initDb().then(function (foundDb) {
 		db = foundDb;
 		return initCollection();
 	}).then(function () {
+		console.log('initalizing worker');
 		initWorker();
+		console.log('worker initialized');
 	});
 
 }
