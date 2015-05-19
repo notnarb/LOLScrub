@@ -44,6 +44,7 @@ matchcollectordistribute:
   links:
     - rabbitmq:matchcollectorqueue
     - rabbitmq:summonercollectorqueue
+    - rabbitmq:livedataqueue
   volumes:
     - matchCollector/matchDistribute/src:/home/app/src/
 # Stores matches into mongo

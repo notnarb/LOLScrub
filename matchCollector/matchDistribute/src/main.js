@@ -9,10 +9,15 @@ var request = require('request');
 
 Promise.promisifyAll(request);
 
+var LIVE_DATA_RABBIT_SERVER = 'livedataqueue';
+
 var MATCH_RABBIT_SERVER = 'matchcollectorqueue';
 var incomingMatchDataRoutingKey = 'new-match-data';
 var storeMatchRoutingKey = 'match-data-to-store';
 var matchStoreTasker;
+
+var liveMatchDataRoutingKey = 'live-match-data';
+var liveMatchTasker;
 
 var SUMMONER_RABBIT_SERVER = 'summonercollectorqueue';
 var summonersToSaveRoutingKey = 'new-summoner';
@@ -46,7 +51,7 @@ function storeMatch (msg, ack) {
 	}
 
 	console.log('storing match', matchData.matchId);
-	Promise.all([saveMatchToDbQueue(matchData, msg), saveParticipants(matchData)]) //TODO: also distribute to live-match-data queue
+	Promise.all([saveMatchToDbQueue(matchData, msg), saveParticipants(matchData), saveMatchToLiveDataQueue(matchData, msg)])
 		.then(function () {
 			console.log('match', matchData.matchID, 'saved successfully');
 			ack();
@@ -82,6 +87,31 @@ function saveMatchToDbQueue (matchData, matchDataString) {
 		};
 		attempt();
 	});
+}
+
+/**
+ * @desc Saves a single match to the LIVE MATCH data queue
+ * @param {Object} matchData - parsed match data (to filter the data)
+ * @param {String} matchDataString - the match Data as a string (since it was stringified before being sent here)
+ * @returns {Promise} - resolves once match has been stored
+ */
+function saveMatchToLiveDataQueue (matchData, matchDataString) {
+	// TODO: filter new match data to get rid of now-irrelevant data
+	if (!liveMatchTasker) {
+		return Promise.reject(new Error('Missing liveMatchTasker'));
+	}
+	return new Promise(function (resolve, reject) {
+		var attempt = function () {
+			try {
+				liveMatchTasker.publish(matchDataString);
+				resolve();
+			} catch(error) {
+				console.log('Failed to store match data to live match queue, retrying in 1 second');
+				setTimeout(attempt, 1000);
+			}
+		};
+		attempt();
+	});	
 }
 
 /**
@@ -151,6 +181,10 @@ function initStorerTasker() {
 	matchStoreTasker = new rabbitWorker.Tasker(MATCH_RABBIT_SERVER, storeMatchRoutingKey);
 }
 
+function initLiveDataTasker() {
+	liveMatchTasker = new rabbitWorker.Tasker(LIVE_DATA_RABBIT_SERVER, liveMatchDataRoutingKey);
+}
+
 
 /**
  * @desc Orchestrates the initialization of database and mq connections
@@ -158,8 +192,8 @@ function initStorerTasker() {
 function main () {
 	initSummonerTasker();
 	initStorerTasker();
+	initLiveDataTasker();
 	initWorker();
-
 }
 
 main();
