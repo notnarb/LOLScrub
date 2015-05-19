@@ -1,96 +1,105 @@
-# Example docker-compose for the old version of this app
-# TODO: this needs to be cleaned up real bad
-urf2015db:
+# Basic working docker-compose.yml to be copied to docker-compose.yml and customized based on the environment
+matchdb:
   image: mongo
   volumes:
-    - /mnt/urfdb/:/data/db/
+    - cache/matchdb/:/data/db
 riotambassador:
   build: riotAmbassador/
-# matchgetter:
-#  build: matchGetter/
-#  links:
-#    - riotambassador
-#    - urf2015db:mongo
-# matchlookup:
-#  build: matchLookup/
-#  links:
-#    - riotambassador
-#    - urf2015db:mongo
-summonerlookup:
-  build: summonerLookup/
+# General, shared rabbitmq instance
+rabbitmq:
+  build: rabbitmq/
+  hostname: rabbit1
   volumes:
-    - summonerLookup/src:/usr/src/app/mnt/:ro
-  links:
-    - riotambassador
-    - urf2015db:mongo
-backendambassador:
-  build: backendAmbassador/
-  links:
-    - summonerlookup
-    - staticgetter
-    - webserver
+    - cache/rabbitmq:/var/lib/rabbitmq/
+  # management port SHOULD NOT BE EXPOSED TO OUTSIDE WORLD
   ports:
-    - "8000:8000"
-# killcollector:
-#   build: matchProcessor/ProcessMatchesIntoKillCollection/
-#   links:
-#     - urf2015db:mongo
-# oddscollector:
-#   build: matchProcessor/GetMatchupOdds/
-#   links:
-#     - urf2015db:mongo
-# oddscalculator:
-#   build: matchProcessor/ConvertKillDataToOdds/
-#   links:
-#     - urf2015db:mongo
-# smoothksdata:
-#   build: matchProcessor/SmoothKSData/
-#   links:
-#     - urf2015db:mongo
-# avgitemcollector:
-#   build: matchProcessor/GetAverageItemBuild/
-#   links:
-#     - urf2015db:mongo
-# kscollector:
-#   build: matchProcessor/GetKSPerChamp/
-#   links:
-#     - urf2015db:mongo
-# multikillcollector:
-#   build: matchProcessor/GetMultiKills/
-#   links:
-#     - urf2015db:mongo
-# overallksoddscollector:
-#   build: matchProcessor/GetOverallKSPerChamp/
-#   links:
-#     - urf2015db:mongo
-# overallksgraphcollector:
-#   build: matchProcessor/GetOverallKSPerChampTime/
-#   links:
-#     - urf2015db:mongo
-# overallmatchupoddscollector:
-#   build: matchProcessor/GetOverallMatchupOdds/
-#   links:
-#     - urf2015db:mongo
-# overallmatchupgraphcollector:
-#   build: matchProcessor/GetOverallMatchupOddsTime/
-#   links:
-#     - urf2015db:mongo
-# snowballcollector:
-#   build: matchProcessor/GetSnowballRating/
-#   links:
-#     - urf2015db:mongo
-# itemmatchupcollector:
-#   build: matchProcessor/GetStrongestItemAgainst/
-#   links:
-#     - urf2015db:mongo
-webserver:
-  build: matchProcessor/Webserver/
+    - "15672:15672"
+# Endpoint to send new match IDs to
+matchcollectorgetter:
+  build: matchCollector/matchGetter/
+  environment:
+    - DEBUG=rabbit-worker
+  volumes:
+    - matchCollector/matchGetter/src:/home/app/src/
   links:
-    - urf2015db:mongo
+    - rabbitmq:matchcollectorqueue
   ports:
-    - "8001:8000"
-staticgetter:
-  build: staticGetter/
+    - "8002:8000"
+# Collector of the riot seed data
+matchcollectorseedgetter:
+  build: matchCollector/seedGetter/
+  environment:
+    - DEBUG=rabbit-worker
   links:
-    - riotambassador
-    - urf2015db:mongo
+    - rabbitmq:matchcollectorqueue
+  volumes:
+    - matchCollector/seedGetter/src:/home/app/src/
+  ports:
+    - "8003:8000"
+# Takes in data found by matchLookup and sends it off to other queues
+matchcollectordistribute:
+  build: matchCollector/matchDistribute
+  environment:
+    - DEBUG=rabbit-worker
+  links:
+    - rabbitmq:matchcollectorqueue
+    - rabbitmq:summonercollectorqueue
+  volumes:
+    - matchCollector/matchDistribute/src:/home/app/src/
+# Stores matches into mongo
+matchcollectorstorer:
+  build: matchCollector/matchStorer
+  environment:
+    - DEBUG=rabbit-worker
+  links:
+    - rabbitmq:matchcollectorqueue
+    - matchdb:mongo 
+  volumes:
+    - matchCollector/matchStorer/src:/home/app/src/
+# Looks up new match IDs in the queue up
+matchcollectorlookup:
+  build: matchCollector/matchLookup/
+  volumes:
+    - matchCollector/matchLookup/src:/home/app/src/
+  environment:
+    - DEBUG=rabbit-worker
+    - NUM_WORKERS=3
+  links:
+    - rabbitmq:matchcollectorqueue
+    - riotambassador:riotambassador
+    - matchdb:mongo
+    
+# Summoner collectors
+summonerdb:
+  image: mongo
+  volumes:
+    - cache/summonerdb:/data/db
+summonercollectorstorer:
+  build: summonerCollector/summonerStorer
+  environment:
+    - DEBUG=rabbit-worker
+  links:
+    - rabbitmq:summonercollectorqueue
+    - summonerdb:mongo
+  volumes:
+    - summonerCollector/summonerStorer/src:/home/app/src/
+summonercollectorscheduler:
+  build: summonerCollector/summonerScheduler
+  environment:
+    - DEBUG=rabbit-worker
+  links:
+    - rabbitmq:summonercollectorqueue
+    - summonerdb:mongo
+  volumes:
+    - summonerCollector/summonerScheduler/src:/home/app/src/
+summonercollectormatchlookup:
+  build: summonerCollector/summonerMatchLookup
+  environment:
+    - DEBUG=rabbit-worker
+    - NUM_WORKERS=3
+  links:
+    - rabbitmq:summonercollectorqueue
+    - matchcollectorgetter:matchcollectorgetter
+    - riotambassador:riotambassador
+  volumes:
+    - summonerCollector/summonerMatchLookup/src:/home/app/src/
